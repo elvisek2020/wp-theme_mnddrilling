@@ -189,7 +189,7 @@ function mnd_core_field_docs( $post ) {
 	);
 	$titles   = array();
 	foreach ( $all as $doc ) {
-		$titles[ $doc->ID ] = get_the_title( $doc );
+		$titles[ $doc->ID ] = html_entity_decode( wp_strip_all_tags( get_the_title( $doc ) ), ENT_QUOTES, 'UTF-8' );
 	}
 	?>
 	<input type="hidden" name="mnd_doc_present" value="1">

@@ -1,0 +1,112 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/theme.json",
+	"version": 3,
+	"settings": {
+		"appearanceTools": false,
+		"color": {
+			"custom": false,
+			"customGradient": false,
+			"defaultPalette": false,
+			"defaultGradients": false,
+			"palette": [
+				{
+					"slug": "green",
+					"name": "Zelená",
+					"color": "#59a80f"
+				},
+				{
+					"slug": "green-light",
+					"name": "Světle zelená",
+					"color": "#74b639"
+				},
+				{
+					"slug": "text",
+					"name": "Text",
+					"color": "#555b5f"
+				},
+				{
+					"slug": "gray",
+					"name": "Šedá",
+					"color": "#b4b3aa"
+				},
+				{
+					"slug": "dark",
+					"name": "Tmavá",
+					"color": "#2d3133"
+				},
+				{
+					"slug": "white",
+					"name": "Bílá",
+					"color": "#ffffff"
+				}
+			]
+		},
+		"layout": {
+			"contentSize": "630px",
+			"wideSize": "940px"
+		},
+		"typography": {
+			"customFontSize": false,
+			"dropCap": false,
+			"defaultFontSizes": false,
+			"fontFamilies": [
+				{
+					"slug": "arial",
+					"name": "Arial",
+					"fontFamily": "Arial, \"Helvetica Neue\", Helvetica, sans-serif"
+				}
+			],
+			"fontSizes": [
+				{
+					"slug": "small",
+					"name": "Malé",
+					"size": "11.5px"
+				},
+				{
+					"slug": "normal",
+					"name": "Normální",
+					"size": "13.6px"
+				},
+				{
+					"slug": "large",
+					"name": "Velké",
+					"size": "17.7px"
+				},
+				{
+					"slug": "x-large",
+					"name": "Nadpis",
+					"size": "31px"
+				}
+			]
+		},
+		"spacing": {
+			"padding": false,
+			"margin": false
+		}
+	},
+	"styles": {
+		"color": {
+			"text": "var(--wp--preset--color--text)"
+		},
+		"typography": {
+			"fontFamily": "var(--wp--preset--font-family--arial)",
+			"fontSize": "var(--wp--preset--font-size--normal)",
+			"lineHeight": "1.6"
+		},
+		"elements": {
+			"link": {
+				"color": {
+					"text": "var(--wp--preset--color--green)"
+				},
+				"typography": {
+					"textDecoration": "none"
+				},
+				":hover": {
+					"typography": {
+						"textDecoration": "underline"
+					}
+				}
+			}
+		}
+	}
+}

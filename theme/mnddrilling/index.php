@@ -1,27 +1,24 @@
 <?php
 /**
- * Záložní šablona (WordPress ji vyžaduje). Kostra – skutečný vzhled přijde v dalších verzích.
+ * Titulka (výpis divizí pod sliderem) a záložní šablona.
+ *
+ * @package MNDDrilling
  */
 
 defined( 'ABSPATH' ) || exit;
-?><!doctype html>
-<html <?php language_attributes(); ?>>
-<head>
-	<meta charset="<?php bloginfo( 'charset' ); ?>">
-	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<?php wp_head(); ?>
-</head>
-<body <?php body_class(); ?>>
-<?php wp_body_open(); ?>
-<main>
-	<?php
-	while ( have_posts() ) {
-		the_post();
-		the_title( '<h1>', '</h1>' );
-		the_content();
-	}
-	?>
-</main>
-<?php wp_footer(); ?>
-</body>
-</html>
+
+get_header();
+?>
+<div class="mnd-inner">
+	<?php mnd_tiles(); ?>
+	<?php if ( ! is_front_page() && have_posts() ) : ?>
+		<div class="mnd-page mnd-page--wide">
+			<?php while ( have_posts() ) : ?>
+				<?php the_post(); ?>
+				<h2><a href="<?php the_permalink(); ?>"><?php the_title(); ?></a></h2>
+			<?php endwhile; ?>
+		</div>
+	<?php endif; ?>
+</div>
+<?php
+get_footer();

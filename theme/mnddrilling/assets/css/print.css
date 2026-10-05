@@ -1,0 +1,42 @@
+/* Tisk: bez hlavičky, dlaždic, podmenu a patičky; odkazy s adresou za textem. */
+.mnd-header,
+.mnd-slider,
+.mnd-tiles,
+.mnd-subnav,
+.mnd-subnav-mobile,
+.mnd-footer,
+.mnd-bottom,
+.mnd-consent,
+.mnd-edit-links,
+.mnd-position-links,
+.mnd-items__nav {
+	display: none !important;
+}
+
+body {
+	color: #000;
+	font-size: 11pt;
+}
+
+.mnd-inner,
+.mnd-page {
+	width: 100% !important;
+	max-width: none;
+	padding: 0;
+}
+
+.mnd-section {
+	display: block;
+}
+
+.mnd-entry a[href^="http"]::after {
+	content: " (" attr(href) ")";
+	font-size: 0.85em;
+	word-break: break-all;
+}
+
+/* V tisku všechny položky katalogu pod sebou */
+.js-items .mnd-item {
+	display: flex !important;
+	break-inside: avoid;
+}

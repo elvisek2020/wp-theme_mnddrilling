@@ -5,9 +5,9 @@
 ![PHP](https://img.shields.io/badge/PHP-7.4%2B-777bb4)
 ![License](https://img.shields.io/badge/license-GPL--2.0--or--later-blue)
 
-Vlastní šablona a doprovodný plugin pro firemní web [www.mnd-drilling.eu](https://www.mnd-drilling.eu) (MND Drilling & Services a.s.) — rychlé, responzivní, bez jQuery, bez build kroku a bez externích služeb.
+Vlastní šablona a doprovodný plugin pro firemní web [www.mnd-drilling.eu](https://www.mnd-drilling.eu) (MND Drilling & Services a.s.) — vzhled původní šablony z roku 2022, ale responzivní, bez jQuery, bez build kroku a bez externích služeb (Google Analytics jen se souhlasem návštěvníka).
 
-> **Stav:** ve vývoji. Plugin je hotový a funguje i nad původní šablonou, nová šablona (stejný vzhled jako původní) se připravuje.
+![Náhled šablony](theme/mnddrilling/screenshot.png)
 
 | Balíček | Typ | Popis |
 |---|---|---|
@@ -20,7 +20,27 @@ Obojí se vydává společně se stejným číslem verze a aktualizuje se přím
 
 ## Šablona MND Drilling
 
-Vizuálně vychází z původní šablony (logo, zelená paleta, dlaždice divizí, levé podmenu, tmavá patička), kód je napsaný znovu. Podrobnosti v [`theme/mnddrilling/README.md`](theme/mnddrilling/README.md).
+**Vzhled**
+- Stejný vzhled jako původní šablona: logo a název v hlavičce, slider na titulce, zelené dlaždice divizí, podmenu sekce v rámečku se šipkami, tmavá patička s Compliance Hotline
+- Na mobilu dlaždice po dvou, zelený panel s hledáním a jazykem, výběr podstránky; ikony dlaždic se na displejích s vysokým rozlišením už nerozpadají
+- Katalog techniky (vrtné soupravy, vybavení) a management: výběr položky nahoře, medailonek s fotkou pod ním; odkazy `#item-ID` fungují dál
+- Volné pozice se stránkováním, detail pozice s tlačítky „Mám zájem o tuto pozici“ a „Zpět na výpis“
+- Formulář „Zájem o pozici“ s předvyplněnou pozicí a tlačítky „Přiložit“, čitelné „Odeslat“ v osobním dotazníku
+- Prohlížeč obrázků z odkazů v textu, tisková verze bez navigace
+
+**Technicky**
+- Hybridní šablona: PHP šablony a `theme.json`, moduly v `inc/` jdou vypnout jednotlivě
+- Čeština a angličtina přes Polylang, texty šablony jdou přeložit v *Jazyky → Překlady textů*
+- SEO: meta description, Open Graph, JSON-LD; česká typografie (pevné mezery)
+- Google Analytics 4 s vlastní cookie lištou — načte se jen se souhlasem a jen když je vyplněné ID (převezme se z MonsterInsights)
+
+**Nastavení** — *Vzhled → Přizpůsobit → MND Drilling*
+
+| Sekce | Volby |
+|---|---|
+| MND Drilling | interval slideru na titulce, Google Analytics 4 ID |
+
+Dlaždice a menu v patičce se spravují ve *Vzhled → Menu*, adresa a kontakty v patičce ve *Vzhled → Widgety*, obrázky slideru ve *Slidy*. Podrobnosti v [`theme/mnddrilling/README.md`](theme/mnddrilling/README.md).
 
 ---
 
@@ -58,8 +78,10 @@ Nahrazuje 4 dřívější pluginy (Simple Login Log, Server IP & Memory Usage, A
 ## Instalace
 
 1. Stáhněte `mnddrilling.zip` a `mnddrilling-core.zip` z [posledního vydání](https://github.com/elvisek2020/wp-theme_mnddrilling/releases/latest).
-2. *Pluginy → Přidat nový → Nahrát plugin* → `mnddrilling-core.zip` → Aktivovat.
-3. *Vzhled → Motivy → Přidat nový → Nahrát motiv* → `mnddrilling.zip` → Aktivovat.
+2. *Pluginy → Přidat nový → Nahrát plugin* → `mnddrilling-core.zip` → Aktivovat (funguje i nad původní šablonou).
+3. *Vzhled → Motivy → Přidat nový → Nahrát motiv* → `mnddrilling.zip` → Živý náhled → Aktivovat. Přiřazení menu se převezme samo.
+4. Vypněte pluginy, které plugin a šablona nahrazují (Advanced Custom Fields až po přepnutí šablony – stará šablona ho potřebuje).
+5. *Nástroje → Údržba webu → Pozůstatky odebraných pluginů* → do karantény.
 
 ## Aktualizace
 

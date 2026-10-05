@@ -15,5 +15,6 @@ docker compose run --rm cli wp <příkaz>   # WP-CLI
 - Šablona se vyvíjí v `../theme/mnddrilling`, plugin v `../plugins/mnddrilling-core` (připojeno do kontejneru, změny jsou vidět hned).
 - mu-pluginy v `../mu-plugins` (jen lokálně, nenasazovat).
 - `wp/` je kopie webrootu ze zálohy, `db/` dump databáze — obojí se neverzuje.
-- Lokálně jsou vypnuté ManageWP, WEDOS monitoring, BackUpWordPress a MonsterInsights.
+- `setup.sh` aktivuje plugin a šablonu z repozitáře, vypne ManageWP a WEDOS monitoring a pluginy, které nahrazuje plugin nebo šablona, přesune je do `_disabled-plugins/` (pro porovnání stačí složku vrátit do `wp/wp-content/plugins/`).
+- Testovací účet správce si vytvoř přes WP-CLI (`wp user create … --role=administrator`), přístup ukládej do `_incoming/` (neverzuje se).
 - Debug log: `wp/wp-content/debug.log`.

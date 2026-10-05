@@ -1,5 +1,27 @@
 # Changelog
 
+## 0.3.0 — 2026-10-05
+### Šablona
+- **Nová šablona MND Drilling se stejným vzhledem jako původní** „Ultimate for MND Drilling & Services“: hlavička s logem a názvem, slider na titulce, zelené dlaždice divizí, podmenu sekce v rámečku, obsah 630 px, tmavá patička s Compliance Hotline a spodní lišta se sítěmi – kód je nový, bez jQuery a bez šesti jQuery knihoven
+- **Všechny šablony stránek** pod stejnými názvy jako dřív (nadřazená stránka, podstránka, s položkami, lidé, volné pozice, formulář, 2 sloupce; historie, společnosti a mapa pro koncepty), přiřazení stránek zůstává
+- **Katalog techniky a management**: výběr položky nahoře, medailonek pod ním, bez JavaScriptu všechny pod sebou; staré odkazy `#item-ID` fungují; u katalogu se ukážou všechny položky (dřív nejvýš 10)
+- **Volné pozice** se stránkováním, detail s tlačítky „Mám zájem o tuto pozici“ a „Zpět na výpis“ (odkaz na výpis místo kroku zpět)
+- **Formulář „Zájem o pozici“**: název pozice se předvyplní na serveru (i bez JavaScriptu), nahrání souborů jako zelené tlačítko „Přiložit“ (dřív rozbité úzké boxy), parametr z adresy se ošetří (stará šablona měla díru XSS)
+- **Osobní dotazník**: tlačítko „Odeslat“ je vidět (dřív bílé písmo na bílém tlačítku); stránky s výchozí šablonou mají nadpis
+- **Mobil**: ikony dlaždic se na displejích s vysokým rozlišením nerozpadají, výběr podstránky ukazuje aktuální stránku, spodní lišta se zalomí místo oříznutí
+- **Titulka**: slider stejně jako dřív (fotka 1600 × 420, na užším displeji oříznutá), nahrazuje bxSlider; název webu je hlavním nadpisem
+- **Hledání** zachová jazyk a má stránkování (dřív jen prvních 10 výsledků), stránka 404 s dlaždicemi jako cestou zpět
+- **Prohlížeč obrázků** z odkazů v textu (náhrada Huge IT Lightbox), **Google Analytics 4 s cookie lištou** (náhrada MonsterInsights, ID se převezme samo), **SEO** meta značky, **česká typografie**, tisková verze
+- Texty šablony jdou přeložit v *Jazyky → Překlady textů* (stávající anglické překlady zůstávají, chybějící mají výchozí angličtinu místo češtiny)
+- Aktualizace z GitHub Releases, upozornění, když chybí plugin MND Drilling Core
+
+### MND Drilling Core
+- Údržba webu: MonsterInsights jde do karantény až po převzetí ID měření šablonou
+- Názvy dokumentů v meta boxu bez HTML entit
+
+### Nástroje
+- `dev/setup.sh` aktivuje plugin i šablonu a nahrazené pluginy přesune do `dev/_disabled-plugins/`
+
 ## 0.2.0 — 2026-10-05
 ### MND Drilling Core
 - **Typy obsahu ze staré šablony**: Slidy, Historie, Společnosti, Volné pozice, Dokumenty, Položky, Oblasti, Lidé a kategorie položek a skupiny společností registruje plugin se stejnými názvy a adresami – obsah přežije výměnu šablony

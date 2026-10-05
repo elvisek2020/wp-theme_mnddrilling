@@ -38,8 +38,24 @@ for url in https://www.mnd-drilling.eu http://www.mnd-drilling.eu https://mnd-dr
 done
 $WP transient delete --all
 
-echo "▶ Vypínám pluginy, které lokálně nechceme (vzdálená správa, monitoring, zálohy, měření)…"
-$WP plugin deactivate worker wedos-online-monitoring backupwordpress google-analytics-for-wordpress || true
+echo "▶ Aktivuju plugin a šablonu z repozitáře…"
+$WP plugin activate mnddrilling-core
+$WP theme activate mnddrilling
+curl -s -o /dev/null http://localhost:8322/   # dokončí přepnutí šablony (převzetí menu z Polylangu)
+
+echo "▶ Vypínám vzdálenou správu, monitoring a pluginy, které nahrazuje plugin nebo šablona…"
+OBSOLETE="advanced-custom-fields simple-custom-post-order simple-login-log server-ip-memory-usage \
+	admin-menu-editor advanced-access-manager backupwordpress google-analytics-for-wordpress lightbox"
+$WP plugin deactivate worker wedos-online-monitoring $OBSOLETE || true
+# Nahrazené pluginy mimo web do _disabled-plugins/ – pro porovnání chování stačí složku vrátit.
+for p in $OBSOLETE; do
+	[ -d "wp/wp-content/plugins/$p" ] || continue
+	if [ -e "_disabled-plugins/$p" ]; then
+		rm -rf "wp/wp-content/plugins/$p"
+	else
+		mv "wp/wp-content/plugins/$p" _disabled-plugins/
+	fi
+done
 $WP cache flush || true
 
 echo

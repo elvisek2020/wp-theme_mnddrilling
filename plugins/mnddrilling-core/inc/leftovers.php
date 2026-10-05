@@ -42,8 +42,10 @@ function mnd_core_leftover_defs() {
 			'name'    => 'MonsterInsights',
 			'plugin'  => 'google-analytics-for-wordpress/googleanalytics.php',
 			'tables'  => array( 'monsterinsights_%' ),
-			'options' => array( 'monsterinsights_%', 'widget_monsterinsights%', '_transient_monsterinsights_%', '_transient_timeout_monsterinsights_%', '_transient__monsterinsights_%', '_transient_timeout__monsterinsights_%', '_site_transient_monsterinsights_%', '_site_transient_timeout_monsterinsights_%' ),
-			'paths'   => array(),
+			'options'  => array( 'monsterinsights_%', 'widget_monsterinsights%', '_transient_monsterinsights_%', '_transient_timeout_monsterinsights_%', '_transient__monsterinsights_%', '_transient_timeout__monsterinsights_%', '_site_transient_monsterinsights_%', '_site_transient_timeout_monsterinsights_%' ),
+			'paths'    => array(),
+			// ID měření GA4 si šablona MND Drilling převezme z nastavení MonsterInsights – do té doby se volby nemažou.
+			'requires' => 'mnd_core_ga_taken_over',
 		),
 		'lightbox'          => array(
 			'name'    => 'Huge IT Lightbox',
@@ -115,6 +117,16 @@ function mnd_core_leftover_defs() {
 			'paths'   => array( 'themes/twentytwentythree', 'themes/twentytwentyfour' ),
 		),
 	);
+}
+
+/**
+ * Má šablona ID měření GA4 (převzaté z MonsterInsights), nebo MonsterInsights žádné neměl?
+ *
+ * @return bool
+ */
+function mnd_core_ga_taken_over() {
+	$profile = get_option( 'monsterinsights_site_profile' );
+	return '' !== (string) get_theme_mod( 'mnd_ga_id', '' ) || (bool) get_theme_mod( 'mnd_ga_migrated' ) || ! is_array( $profile ) || empty( $profile['v4'] );
 }
 
 /**
