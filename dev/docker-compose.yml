@@ -1,0 +1,53 @@
+name: mnddrilling-dev
+
+services:
+  db:
+    image: mariadb:10.11
+    restart: unless-stopped
+    environment:
+      MARIADB_DATABASE: mnddrilling
+      MARIADB_USER: wp
+      MARIADB_PASSWORD: wp
+      MARIADB_ROOT_PASSWORD: root
+    volumes:
+      - db-data:/var/lib/mysql
+      - ./db:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 5s
+      timeout: 5s
+      retries: 60
+
+  wp:
+    image: wordpress:php8.5-apache
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "8322:80"    # http://localhost:8322 (8080 a 80 používá lokální elvisek, 8321 mndgroup)
+    volumes:
+      - ./wp:/var/www/html
+      - ./wp-config.php:/var/www/html/wp-config.php:ro
+      - ../theme/mnddrilling:/var/www/html/wp-content/themes/mnddrilling
+      - ../mu-plugins:/var/www/html/wp-content/mu-plugins
+      - ../plugins/mnddrilling-core:/var/www/html/wp-content/plugins/mnddrilling-core
+
+  cli:
+    image: wordpress:cli-php8.5
+    profiles: ["cli"]
+    user: "33:33"
+    environment:
+      HOME: /tmp
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - ./wp:/var/www/html
+      - ./wp-config.php:/var/www/html/wp-config.php:ro
+      - ../theme/mnddrilling:/var/www/html/wp-content/themes/mnddrilling
+      - ../mu-plugins:/var/www/html/wp-content/mu-plugins
+      - ../plugins/mnddrilling-core:/var/www/html/wp-content/plugins/mnddrilling-core
+
+volumes:
+  db-data:

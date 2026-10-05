@@ -4,10 +4,10 @@ Theme URI: https://www.mnd-drilling.eu
 Author: Zdeněk Král (ElvisEK)
 Author URI: https://www.elvisek.cz
 Description: Vlastní rychlá šablona pro mnd-drilling.eu — hybrid (PHP šablony + theme.json), responzivní, bez jQuery a bez externích služeb. Zatím kostra.
-Version: 0.1.0
+Version: 0.2.0
 Requires at least: 6.6
 Tested up to: 7.1
-Requires PHP: 8.1
+Requires PHP: 7.4
 License: GNU General Public License v2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 Text Domain: mnddrilling
