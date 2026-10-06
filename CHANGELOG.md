@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.3.4 — 2026-10-06
+### Šablona
+- **Mobil – dlaždice divizí zpět nahoře na každé stránce**, ale kompaktní (na telefonu 3 × 2, nižší než v 0.3.3). Při rolování odjedou pryč, nahoře zůstane hlavička s hamburger menu a divize jsou dál v něm
+
+### MND Drilling Core
+- Beze změny funkcí (verze srovnaná se šablonou)
+
 ## 0.3.3 — 2026-10-06
 ### Šablona
 - **Kompaktnější mobil**: na podstránkách se na telefonu už neukazuje šest velkých dlaždic přes celou obrazovku – stránka začíná rovnou výběrem podstránky a obsahem. Divize jsou v hamburger menu jako malé dlaždice (3 v řadě) spolu s jazykem a hledáním

@@ -1412,48 +1412,44 @@ body .frm_forms .mnd-form .frm_error_style {
 		margin-bottom: 0;
 	}
 
-	/* Kompaktní dlaždice: v panelu a na titulce (6 v řadě, na telefonu 3); na podstránkách jen v panelu */
+	/* Kompaktní dlaždice (6 v řadě, na telefonu 3×2) nahoře na každé stránce; po odrolování
+	   zůstane přichycená hlavička a divize jsou v hamburger menu */
 	.mnd-main .mnd-tiles {
-		display: none;
-	}
-
-	.home .mnd-main .mnd-tiles {
-		display: block;
-		padding-top: 15px;
+		padding: 10px 0 0;
 	}
 
 	.mnd-tiles--menu .mnd-tiles__list,
-	.home .mnd-main .mnd-tiles__list {
+	.mnd-main .mnd-tiles__list {
 		display: grid;
 		grid-template-columns: repeat(6, 1fr);
 		gap: 4px;
 	}
 
 	.mnd-tiles--menu .mnd-tile,
-	.home .mnd-main .mnd-tile {
+	.mnd-main .mnd-tile {
 		margin: 0;
 	}
 
 	.mnd-tiles--menu .mnd-tile__link,
-	.home .mnd-main .mnd-tile__link {
+	.mnd-main .mnd-tile__link {
 		width: auto;
-		height: 100px;
+		height: 88px;
 	}
 
 	/* Ikona zmenšená a vystředěná v horní části, název (max. 2 řádky) pod ní */
 	.mnd-tiles--menu .mnd-tile__icon,
-	.home .mnd-main .mnd-tile__icon {
-		top: 32px;
+	.mnd-main .mnd-tile__icon {
+		top: 28px;
 		margin: 0;
-		transform: translate(-50%, -50%) scale(0.45);
+		transform: translate(-50%, -50%) scale(0.4);
 	}
 
 	.mnd-tiles--menu .mnd-tile__title,
-	.home .mnd-main .mnd-tile__title {
+	.mnd-main .mnd-tile__title {
 		top: auto;
-		bottom: 8px;
+		bottom: 7px;
 		padding: 0 4px;
-		font-size: 13px;
+		font-size: 12.5px;
 		line-height: 1.15;
 	}
 
@@ -1506,7 +1502,7 @@ body .frm_forms .mnd-form .frm_error_style {
 	}
 
 	.mnd-tiles--menu .mnd-tiles__list,
-	.home .mnd-main .mnd-tiles__list {
+	.mnd-main .mnd-tiles__list {
 		grid-template-columns: repeat(3, 1fr);
 	}
 

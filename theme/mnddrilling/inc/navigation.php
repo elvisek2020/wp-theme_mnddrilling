@@ -1,7 +1,7 @@
 <?php
 /**
  * Dlaždice divizí – hlavní menu (umístění „homepage-menu“) na titulce i nad každou stránkou.
- * Na mobilu jsou na podstránkách jen v hamburger menu (kompaktní mřížka), na titulce kompaktní.
+ * Na mobilu jsou menší (3×2) a po odrolování zůstávají v hamburger menu.
  *
  * Ikona a odstín zelené jsou podle pořadí položky (1.–6.) stejně jako v původní šabloně,
  * aktivní divize (aktuální stránka nebo její předek) je šedá.
