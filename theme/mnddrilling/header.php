@@ -37,10 +37,11 @@ defined( 'ABSPATH' ) || exit;
 				</ul>
 			<?php endif; ?>
 			<?php get_search_form(); ?>
+			<?php mnd_tiles( 'menu' ); ?>
 		</div>
 
 		<button type="button" class="mnd-nav-toggle" aria-controls="mnd-tools" aria-expanded="false">
-			<span class="screen-reader-text"><?php echo esc_html( mnd_t( 'Hledání a jazyk', 'Search and language' ) ); ?></span>
+			<span class="screen-reader-text"><?php echo esc_html( mnd_t( 'Menu', 'Menu' ) ); ?></span>
 			<i></i><i></i><i></i>
 		</button>
 	</div>

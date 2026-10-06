@@ -39,7 +39,7 @@ Typy obsahu (položky, dokumenty, volné pozice, lidé…), pole stránek a řaz
 | `template-parts/body-*.php`, `item.php` | katalog položek, lidé, volné pozice, tlačítka u pozice, medailonek |
 | `template-parts/slider.php` | slider na titulce (Slidy) |
 | `assets/css/` | `main.css` (proměnné nahoře), `editor.css`, `print.css` |
-| `assets/js/` | `theme.js` (mobilní panel, podmenu, katalog, slider, lightbox), `consent.js` (cookie lišta) |
+| `assets/js/` | `theme.js` (mobilní menu, podmenu, katalog, slider, lightbox), `consent.js` (cookie lišta) |
 | `assets/img/` | logo, ikony dlaždic, ikona certifikátu a Compliance Hotline |
 
 ## Nastavení

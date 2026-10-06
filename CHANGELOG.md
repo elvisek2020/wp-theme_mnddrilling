@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.3.3 — 2026-10-06
+### Šablona
+- **Kompaktnější mobil**: na podstránkách se na telefonu už neukazuje šest velkých dlaždic přes celou obrazovku – stránka začíná rovnou výběrem podstránky a obsahem. Divize jsou v hamburger menu jako malé dlaždice (3 v řadě) spolu s jazykem a hledáním
+- Na titulce zůstávají dlaždice, ale menší (na telefonu 3 v řadě, na tabletu všech 6 v jedné řadě)
+- Po otevření menu se už nevysouvá klávesnice (fokus jde na první divizi, ne do hledání)
+- Vzhled na počítači beze změny
+
+### MND Drilling Core
+- Beze změny funkcí (verze srovnaná se šablonou)
+
 ## 0.3.2 — 2026-10-06
 ### MND Drilling Core
 - **Názvy souborů s diakritikou** (*Nástroje → Údržba webu*): část obrázků a PDF z let 2015–2021 má na serveru název v jiném tvaru Unicode než v databázi (nahrání z Macu), takže jejich adresy vracely 404 – např. doporučující dopisy na stránce Reference, téma diplomové práce nebo Zásady ochrany osobních údajů. Údržba je ukáže a tlačítkem *Opravit názvy souborů* přejmenuje na tvar z databáze; obsah ani odkazy se nemění

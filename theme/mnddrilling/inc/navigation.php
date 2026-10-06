@@ -1,6 +1,7 @@
 <?php
 /**
  * Dlaždice divizí – hlavní menu (umístění „homepage-menu“) na titulce i nad každou stránkou.
+ * Na mobilu jsou na podstránkách jen v hamburger menu (kompaktní mřížka), na titulce kompaktní.
  *
  * Ikona a odstín zelené jsou podle pořadí položky (1.–6.) stejně jako v původní šabloně,
  * aktivní divize (aktuální stránka nebo její předek) je šedá.
@@ -83,8 +84,10 @@ class MND_Tiles_Walker extends Walker_Nav_Menu {
 
 /**
  * Dlaždice divizí.
+ *
+ * @param string $variant „menu“ = kompaktní mřížka v mobilním panelu (na desktopu skrytá).
  */
-function mnd_tiles() {
+function mnd_tiles( $variant = '' ) {
 	if ( ! has_nav_menu( 'homepage-menu' ) ) {
 		return;
 	}
@@ -92,8 +95,8 @@ function mnd_tiles() {
 		array(
 			'theme_location'  => 'homepage-menu',
 			'container'       => 'nav',
-			'container_class' => 'mnd-tiles',
-			'container_aria_label' => mnd_t( 'Divize', 'Divisions' ),
+			'container_class' => 'menu' === $variant ? 'mnd-tiles mnd-tiles--menu' : 'mnd-tiles',
+			'container_aria_label' => 'menu' === $variant ? mnd_t( 'Menu', 'Menu' ) : mnd_t( 'Divize', 'Divisions' ),
 			'menu_class'      => 'mnd-tiles__list',
 			'depth'           => 1,
 			'fallback_cb'     => false,

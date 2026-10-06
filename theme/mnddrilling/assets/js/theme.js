@@ -1,7 +1,7 @@
 /**
  * MND Drilling — chování stránek (bez jQuery).
  *
- * 1) Mobilní panel s jazykem a hledáním
+ * 1) Mobilní panel: divize, hledání a jazyk
  * 2) Výběr podstránky na mobilu
  * 3) Katalog položek a lidé: výběr položky (adresy #item-ID z původní šablony fungují dál)
  * 4) Slider na titulce
@@ -21,9 +21,10 @@
 			document.body.classList.toggle( 'is-nav-open', open );
 			toggle.setAttribute( 'aria-expanded', open ? 'true' : 'false' );
 			if ( open ) {
-				var input = document.querySelector( '.mnd-search__input' );
-				if ( input ) {
-					input.focus( { preventScroll: true } );
+				// Fokus na první divizi (ne do hledání – na mobilu by vyskočila klávesnice).
+				var first = document.querySelector( '.mnd-tiles--menu a' );
+				if ( first ) {
+					first.focus( { preventScroll: true } );
 				}
 			}
 		};

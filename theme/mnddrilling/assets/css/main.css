@@ -456,6 +456,11 @@ a.mnd-btn:focus-visible {
 .mnd-tile--5 .mnd-tile__icon { width: 87px; height: 84px; margin: -24px 0 0 -43px; background-image: url("../img/nav/nav5.png"); }
 .mnd-tile--6 .mnd-tile__icon { width: 93px; height: 85px; margin: -25px 0 0 -46px; background-image: url("../img/nav/nav6.png"); }
 
+/* Dlaždice v mobilním panelu – na desktopu se neukazují */
+.mnd-tiles--menu {
+	display: none;
+}
+
 .mnd-tile__title {
 	position: absolute;
 	top: 160px;
@@ -1289,25 +1294,45 @@ body .frm_forms .mnd-form .frm_error_style {
 		display: block;
 	}
 
-	/* Zelený panel s jazykem a hledáním, vyjede shora */
+	/* Panel z hamburger menu: nahoře zelený pruh s jazykem a hledáním, pod ním divize */
 	.mnd-header__tools {
 		position: fixed;
 		top: 0;
 		left: 0;
 		z-index: 2000;
-		display: block;
+		display: flex;
+		flex-direction: row;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 0 10px;
 		width: 100%;
-		height: 65px;
+		max-height: 100vh;
+		padding: 0 10px 12px;
 		margin: 0;
-		background-color: var(--mnd-green-light);
+		overflow-y: auto;
+		background: #fff;
+		box-shadow: 0 6px 24px rgb(0 0 0 / 0.25);
 		transform: translateY(-100%);
 		visibility: hidden;
 		transition: transform 250ms, visibility 250ms;
 	}
 
+	.mnd-header__tools::before {
+		content: "";
+		position: absolute;
+		top: 0;
+		left: 0;
+		z-index: -1;
+		width: 100%;
+		height: 50px;
+		background-color: var(--mnd-green-light);
+	}
+
+	/* Viditelnost hned při otevření, aby šel nastavit fokus; při zavření až po vyjetí */
 	.is-nav-open .mnd-header__tools {
 		transform: none;
 		visibility: visible;
+		transition: transform 250ms, visibility 0s;
 	}
 
 	.admin-bar.is-nav-open .mnd-header__tools {
@@ -1315,12 +1340,14 @@ body .frm_forms .mnd-form .frm_error_style {
 	}
 
 	.mnd-lang {
-		position: absolute;
-		top: 10px;
-		left: 0;
 		height: auto;
 		margin: 0;
 		overflow: visible;
+	}
+
+	.mnd-lang__item {
+		margin: 0;
+		padding: 0;
 	}
 
 	.mnd-lang__item.is-active {
@@ -1329,20 +1356,25 @@ body .frm_forms .mnd-form .frm_error_style {
 
 	.mnd-lang a {
 		display: block;
-		padding: 10px 15px;
+		padding: 10px 5px;
 		color: #fff;
 		font-size: 16px;
+		line-height: 30px;
 	}
 
 	.mnd-search {
-		position: absolute;
-		top: 20px;
-		left: 60px;
+		height: 50px;
 		margin: 0;
 	}
 
 	.mnd-search__button {
 		color: #fff;
+	}
+
+	.mnd-tiles--menu {
+		display: block;
+		flex: 0 0 100%;
+		padding: 12px 0 0;
 	}
 
 	.is-nav-open .mnd-nav-toggle {
@@ -1376,13 +1408,53 @@ body .frm_forms .mnd-form .frm_error_style {
 		transform: rotate(-45deg);
 	}
 
-	.mnd-tiles__list {
-		justify-content: center;
-		column-gap: 4px;
+	.mnd-slider {
+		margin-bottom: 0;
 	}
 
-	.home .mnd-tiles {
-		margin-top: 20px;
+	/* Kompaktní dlaždice: v panelu a na titulce (6 v řadě, na telefonu 3); na podstránkách jen v panelu */
+	.mnd-main .mnd-tiles {
+		display: none;
+	}
+
+	.home .mnd-main .mnd-tiles {
+		display: block;
+		padding-top: 15px;
+	}
+
+	.mnd-tiles--menu .mnd-tiles__list,
+	.home .mnd-main .mnd-tiles__list {
+		display: grid;
+		grid-template-columns: repeat(6, 1fr);
+		gap: 4px;
+	}
+
+	.mnd-tiles--menu .mnd-tile,
+	.home .mnd-main .mnd-tile {
+		margin: 0;
+	}
+
+	.mnd-tiles--menu .mnd-tile__link,
+	.home .mnd-main .mnd-tile__link {
+		width: auto;
+		height: 100px;
+	}
+
+	/* Ikona zmenšená a vystředěná v horní části, název (max. 2 řádky) pod ní */
+	.mnd-tiles--menu .mnd-tile__icon,
+	.home .mnd-main .mnd-tile__icon {
+		top: 32px;
+		margin: 0;
+		transform: translate(-50%, -50%) scale(0.45);
+	}
+
+	.mnd-tiles--menu .mnd-tile__title,
+	.home .mnd-main .mnd-tile__title {
+		top: auto;
+		bottom: 8px;
+		padding: 0 4px;
+		font-size: 13px;
+		line-height: 1.15;
 	}
 
 	.mnd-section {
@@ -1431,6 +1503,11 @@ body .frm_forms .mnd-form .frm_error_style {
 @media (max-width: 640px) {
 	.mnd-slider {
 		display: none;
+	}
+
+	.mnd-tiles--menu .mnd-tiles__list,
+	.home .mnd-main .mnd-tiles__list {
+		grid-template-columns: repeat(3, 1fr);
 	}
 
 	.mnd-header__name {

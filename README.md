@@ -22,7 +22,7 @@ Obojí se vydává společně se stejným číslem verze a aktualizuje se přím
 
 **Vzhled**
 - Stejný vzhled jako původní šablona: logo a název v hlavičce, slider na titulce, zelené dlaždice divizí, podmenu sekce v rámečku se šipkami, tmavá patička s Compliance Hotline
-- Na mobilu dlaždice po dvou, zelený panel s hledáním a jazykem, výběr podstránky; ikony dlaždic se na displejích s vysokým rozlišením už nerozpadají
+- Na mobilu hamburger menu s kompaktními dlaždicemi divizí, jazykem a hledáním, podstránky začínají rovnou obsahem (výběr podstránky); ikony dlaždic se na displejích s vysokým rozlišením už nerozpadají
 - Katalog techniky (vrtné soupravy, vybavení) a management: výběr položky nahoře, medailonek s fotkou pod ním; odkazy `#item-ID` fungují dál
 - Volné pozice se stránkováním, detail pozice s tlačítky „Mám zájem o tuto pozici“ a „Zpět na výpis“
 - Formulář „Zájem o pozici“ s předvyplněnou pozicí a tlačítky „Přiložit“, čitelné „Odeslat“ v osobním dotazníku
