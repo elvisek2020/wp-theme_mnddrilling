@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.3.1 — 2026-10-06
+### MND Drilling Core
+- **Obrázky na WebP bezpečněji**: přílohy z formulářů (uploads/formidable – fotky a dokumenty uchazečů) se nepřevádějí ani při převodu starších obrázků, ani při nahrání, a v Údržbě se neukazují jako nepoužité
+- **Velké fotky**: při převodu se zmenší na 2560 px (jako WordPress dělá u nových nahrání), nezmenšené originály jdou rovnou do karantény bez načítání – převod nespadne na paměti
+- **Dávky pokračují samy** (stránku stačí nechat otevřenou, jde zastavit); když PHP na některém obrázku spadne, příští dávka ho přeskočí a ukáže v seznamu „Nepřevedené obrázky“ s tlačítkem Zkusit znovu
+- **PNG s paletou barev**: GD je neumí uložit jako WebP a zapsal prázdný soubor – takový převod se teď nepočítá a obrázek zůstane PNG (při převodu i při nahrání)
+- Ošetřená poškozená metadata velikostí obrázků; délka dávky jde změnit filtrem `mnd_core_webp_batch_seconds`
+
+### Šablona
+- Beze změny funkcí (verze srovnaná s pluginem)
+
 ## 0.3.0 — 2026-10-05
 ### Šablona
 - **Nová šablona MND Drilling se stejným vzhledem jako původní** „Ultimate for MND Drilling & Services“: hlavička s logem a názvem, slider na titulce, zelené dlaždice divizí, podmenu sekce v rámečku, obsah 630 px, tmavá patička s Compliance Hotline a spodní lišta se sítěmi – kód je nový, bez jQuery a bez šesti jQuery knihoven

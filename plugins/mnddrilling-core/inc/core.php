@@ -582,6 +582,13 @@ function mnd_core_webp_upload( $upload ) {
 	if ( ! empty( $upload['error'] ) || ! isset( $upload['type'] ) || ! in_array( $upload['type'], array( 'image/jpeg', 'image/png' ), true ) || ! mnd_core_webp_supported() ) {
 		return $upload;
 	}
+	// Přílohy z formulářů (uploads/formidable – fotky a dokumenty uchazečů) zůstávají, jak je uchazeč poslal.
+	$basedir = wp_normalize_path( wp_get_upload_dir()['basedir'] );
+	foreach ( function_exists( 'mnd_core_media_excluded_dirs' ) ? mnd_core_media_excluded_dirs() : array() as $dir ) {
+		if ( 0 === strpos( wp_normalize_path( $upload['file'] ), trailingslashit( $basedir ) . $dir ) ) {
+			return $upload;
+		}
+	}
 	$file   = $upload['file'];
 	$editor = wp_get_image_editor( $file );
 	if ( is_wp_error( $editor ) ) {
@@ -597,8 +604,12 @@ function mnd_core_webp_upload( $upload ) {
 	$editor->set_quality( 82 );
 	$editor->maybe_exif_rotate(); // fotky z mobilu: WebP nenese EXIF, otočit hned
 	$saved = $editor->save( $dir . '/' . $name, 'image/webp' );
-	if ( is_wp_error( $saved ) || ! is_file( $dir . '/' . $name ) ) {
-		return $upload; // když převod selže, zůstane původní soubor
+	// Když převod selže (u PNG s paletou zapíše GD i prázdný soubor), zůstane původní soubor.
+	if ( is_wp_error( $saved ) || ! is_file( $dir . '/' . $name ) || ! filesize( $dir . '/' . $name ) ) {
+		if ( is_file( $dir . '/' . $name ) ) {
+			wp_delete_file( $dir . '/' . $name );
+		}
+		return $upload;
 	}
 	wp_delete_file( $file );
 	return array(

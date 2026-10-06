@@ -5,6 +5,8 @@
  *  1) Přehled systému
  *  2) Obrázky na WebP: starší JPG/PNG natrvalo převede na .webp (soubory i odkazy v obsahu),
  *     staré adresy přesměruje 301, původní soubory přesune do karantény. Vidět jen dokud nějaké zbývají.
+ *     Vynechá soubory z formulářů (uploads/formidable – přílohy uchazečů), fotky nad 2560 px zmenší,
+ *     dávky pokračují samy a obrázek, na kterém PHP spadne, se příště přeskočí.
  *  3) Databáze: velikost tabulek, autoload, optimalizace
  *  4) Úklid databáze: revize, koncepty, koš, prošlé transienty, osiřelá metadata
  *  5) Média a odkazy: největší soubory, nepoužité obrázky (jen ke kontrole), rozbité interní odkazy
@@ -124,7 +126,7 @@ function mnd_core_attachment_files( $id ) {
 		$files[] = $dir . '/' . $meta['original_image'];
 	}
 	foreach ( isset( $meta['sizes'] ) ? (array) $meta['sizes'] : array() as $size ) {
-		if ( ! empty( $size['file'] ) ) {
+		if ( is_array( $size ) && ! empty( $size['file'] ) ) {
 			$files[] = $dir . '/' . $size['file'];
 		}
 	}
@@ -132,19 +134,77 @@ function mnd_core_attachment_files( $id ) {
 }
 
 /**
- * ID příloh, které jsou ještě JPG/PNG (bez těch, jejichž převod selhal).
+ * Složky v uploads, jejichž soubory se nepřevádějí ani nenabízejí jako nepoužité
+ * (přílohy uchazečů z formulářů Formidable – osobní údaje, HR na ně má odkazy v e-mailech).
+ *
+ * @return string[] Cesty relativně k uploads, s lomítkem na konci.
+ */
+function mnd_core_media_excluded_dirs() {
+	return (array) apply_filters( 'mnd_core_media_excluded_dirs', array( 'formidable/' ) );
+}
+
+/**
+ * Patří příloha do vyloučené složky?
+ *
+ * @param int $id ID přílohy.
+ * @return bool
+ */
+function mnd_core_media_excluded( $id ) {
+	$rel = (string) get_post_meta( $id, '_wp_attached_file', true );
+	foreach ( mnd_core_media_excluded_dirs() as $dir ) {
+		if ( 0 === strpos( $rel, $dir ) ) {
+			return true;
+		}
+	}
+	return false;
+}
+
+/**
+ * ID příloh, které jsou ještě JPG/PNG (bez vyloučených složek a bez těch, jejichž převod selhal).
  *
  * @return int[]
  */
 function mnd_core_webp_pending() {
 	global $wpdb;
-	return array_map(
+	$ids = array_map(
 		'intval',
 		$wpdb->get_col(
 			"SELECT p.ID FROM {$wpdb->posts} p LEFT JOIN {$wpdb->postmeta} m ON m.post_id = p.ID AND m.meta_key = '_mnd_core_webp_fail'
 			 WHERE p.post_type = 'attachment' AND p.post_mime_type IN ('image/png','image/jpeg') AND m.meta_id IS NULL ORDER BY p.ID DESC"
 		)
 	);
+	return array_values(
+		array_filter(
+			$ids,
+			function ( $id ) {
+				return ! mnd_core_media_excluded( $id );
+			}
+		)
+	);
+}
+
+/**
+ * Přílohy, jejichž převod selhal: ID => důvod.
+ *
+ * @return array
+ */
+function mnd_core_webp_failed() {
+	global $wpdb;
+	$rows = $wpdb->get_results( "SELECT post_id, meta_value FROM {$wpdb->postmeta} WHERE meta_key = '_mnd_core_webp_fail' ORDER BY post_id DESC" );
+	$out  = array();
+	foreach ( (array) $rows as $row ) {
+		$out[ (int) $row->post_id ] = (string) $row->meta_value;
+	}
+	return $out;
+}
+
+/**
+ * Největší rozměr obrázku na webu (jako u nově nahraných – big_image_size_threshold, výchozí 2560 px).
+ *
+ * @return int 0 = bez zmenšení.
+ */
+function mnd_core_webp_max_size() {
+	return (int) apply_filters( 'big_image_size_threshold', 2560, array(), '', 0 );
 }
 
 /**
@@ -166,11 +226,12 @@ function mnd_core_webp_unify( $id ) {
 	$meta   = wp_get_attachment_metadata( $id );
 	$meta   = is_array( $meta ) ? $meta : array();
 	$names  = array( basename( $main ) );
-	if ( ! empty( $meta['original_image'] ) ) {
-		$names[] = $meta['original_image'];
-	}
+	// Nezmenšený originál (u fotek nahraných od WP 5.3 vedle „-scaled“) se nepřevádí – web ho nepoužívá
+	// a jeho načtení by mohlo vyčerpat paměť. Přesune se jen do karantény.
+	$original = ! empty( $meta['original_image'] ) && is_file( $dir . '/' . $meta['original_image'] ) ? $meta['original_image'] : '';
+	$max_size = mnd_core_webp_max_size();
 	foreach ( isset( $meta['sizes'] ) ? (array) $meta['sizes'] : array() as $size ) {
-		if ( ! empty( $size['file'] ) ) {
+		if ( is_array( $size ) && ! empty( $size['file'] ) ) {
 			$names[] = $size['file'];
 		}
 	}
@@ -197,9 +258,17 @@ function mnd_core_webp_unify( $id ) {
 		if ( ! $saved ) {
 			$editor->set_quality( 82 );
 			$editor->maybe_exif_rotate(); // WebP nenese EXIF – otočit podle něj už teď
+			$dims = $editor->get_size();
+			if ( $name === basename( $main ) && $max_size && max( $dims['width'], $dims['height'] ) > $max_size ) {
+				$editor->resize( $max_size, $max_size, false ); // jako WordPress u nových nahrání
+			}
 			$saved = $editor->save( $new, 'image/webp' );
 		}
-		if ( is_wp_error( $saved ) || ! is_file( $new ) ) {
+		// GD u PNG s paletou barev někdy zapíše prázdný soubor – takový převod se nepočítá.
+		if ( is_wp_error( $saved ) || ! is_file( $new ) || ! filesize( $new ) ) {
+			if ( is_file( $new ) ) {
+				wp_delete_file( $new );
+			}
 			array_map( 'wp_delete_file', $created );
 			/* translators: %s: file name. */
 			return new WP_Error( 'convert', sprintf( __( 'Převod se nepovedl: %s', 'mnddrilling-core' ), $name ) );
@@ -220,11 +289,17 @@ function mnd_core_webp_unify( $id ) {
 	if ( ! empty( $meta['file'] ) ) {
 		$meta['file'] = ( $subdir ? $subdir . '/' : '' ) . basename( $main_new );
 	}
-	if ( ! empty( $meta['original_image'] ) && isset( $map[ $meta['original_image'] ] ) ) {
-		$meta['original_image'] = $map[ $meta['original_image'] ];
+	$main_size = wp_getimagesize( $main_new );
+	if ( $main_size ) {
+		$meta['width']  = (int) $main_size[0];
+		$meta['height'] = (int) $main_size[1];
+	}
+	if ( $original ) {
+		$before += (int) filesize( $dir . '/' . $original );
+		unset( $meta['original_image'] );
 	}
 	foreach ( isset( $meta['sizes'] ) ? (array) $meta['sizes'] : array() as $key => $size ) {
-		if ( isset( $map[ $size['file'] ] ) ) {
+		if ( is_array( $size ) && ! empty( $size['file'] ) && isset( $map[ $size['file'] ] ) ) {
 			$meta['sizes'][ $key ]['file']      = $map[ $size['file'] ];
 			$meta['sizes'][ $key ]['mime-type'] = 'image/webp';
 			$meta['sizes'][ $key ]['filesize']  = (int) filesize( $dir . '/' . $map[ $size['file'] ] );
@@ -259,6 +334,9 @@ function mnd_core_webp_unify( $id ) {
 	foreach ( array_keys( $map ) as $from ) {
 		mnd_core_quarantine_move( $dir . '/' . $from, 'webp' );
 	}
+	if ( $original ) {
+		mnd_core_quarantine_move( $dir . '/' . $original, 'webp' );
+	}
 	clean_post_cache( $id );
 	return max( 0, $before - $after );
 }
@@ -270,28 +348,47 @@ function mnd_core_webp_unify( $id ) {
  */
 function mnd_core_webp_unify_batch() {
 	@set_time_limit( 120 ); // phpcs:ignore WordPress.PHP.NoSilencedErrors
-	$start = time();
+	$start  = time();
+	$budget = (int) apply_filters( 'mnd_core_webp_batch_seconds', 40 ); // délka dávky – rezerva pod limitem PHP/hostingu
 	$done  = 0;
 	$saved = 0;
 	$fail  = array();
 	foreach ( mnd_core_webp_pending() as $id ) {
+		// Značka předem: když PHP na obrázku spadne (paměť, čas), další dávka ho přeskočí a ukáže v chybách.
+		update_post_meta( $id, '_mnd_core_webp_fail', __( 'Převod nedoběhl (nejspíš došla paměť) – obrázek zůstal JPG/PNG.', 'mnddrilling-core' ) );
 		$result = mnd_core_webp_unify( $id );
 		if ( is_wp_error( $result ) ) {
 			$fail[] = $id;
 			update_post_meta( $id, '_mnd_core_webp_fail', $result->get_error_message() ); // další dávka ji přeskočí
 		} else {
+			delete_post_meta( $id, '_mnd_core_webp_fail' );
 			$done++;
 			$saved += $result;
 		}
-		if ( time() - $start > 40 ) {
+		if ( time() - $start >= $budget ) {
 			break;
 		}
 	}
 	$left = count( mnd_core_webp_pending() );
+	// Další dávka se spustí sama (stránka Údržby ji odešle), dokud nějaké zbývají a správce nezastaví.
+	if ( $left ) {
+		set_transient( 'mnd_core_webp_auto_' . get_current_user_id(), 1, 10 * MINUTE_IN_SECONDS );
+	} else {
+		delete_transient( 'mnd_core_webp_auto_' . get_current_user_id() );
+	}
 	/* translators: 1: number of images, 2: saved size. */
 	$msg = sprintf( __( 'Převedeno obrázků: %1$d, ušetřeno %2$s.', 'mnddrilling-core' ), $done, size_format( $saved, 1 ) );
 	/* translators: %d: remaining images. */
-	$msg .= ' ' . ( $left ? sprintf( __( 'Zbývá %d – klikněte znovu.', 'mnddrilling-core' ), $left ) : __( 'Hotovo, všechny obrázky jsou WebP. Původní soubory jsou v karanténě.', 'mnddrilling-core' ) );
+	$failed = count( mnd_core_webp_failed() );
+	if ( $left ) {
+		/* translators: %d: remaining images. */
+		$msg .= ' ' . sprintf( __( 'Zbývá %d – další dávka se spustí sama.', 'mnddrilling-core' ), $left );
+	} elseif ( $failed ) {
+		/* translators: %d: number of images. */
+		$msg .= ' ' . sprintf( __( 'Hotovo. Původní soubory jsou v karanténě, %d obrázků se převést nepodařilo a zůstávají JPG/PNG (seznam níže).', 'mnddrilling-core' ), $failed );
+	} else {
+		$msg .= ' ' . __( 'Hotovo, všechny obrázky jsou WebP. Původní soubory jsou v karanténě.', 'mnddrilling-core' );
+	}
 	if ( $fail ) {
 		$msg .= ' ' . __( 'Nepovedlo se: ID', 'mnddrilling-core' ) . ' ' . implode( ', ', $fail ) . '.';
 	}
@@ -521,7 +618,7 @@ function mnd_core_unused_media() {
 			'no_found_rows'  => true,
 		)
 	) as $attachment ) {
-		if ( isset( $used[ $attachment->ID ] ) ) {
+		if ( isset( $used[ $attachment->ID ] ) || mnd_core_media_excluded( $attachment->ID ) ) {
 			continue;
 		}
 		$rel  = (string) get_post_meta( $attachment->ID, '_wp_attached_file', true );
@@ -622,6 +719,9 @@ function mnd_core_maintenance_action() {
 		$msg = __( 'Všechny blokace přihlášení byly zrušeny.', 'mnddrilling-core' );
 	} elseif ( 'webp' === $task ) {
 		$msg = mnd_core_webp_unify_batch();
+	} elseif ( 'webp_retry' === $task ) {
+		delete_metadata( 'post', 0, '_mnd_core_webp_fail', '', true );
+		$msg = __( 'Nepřevedené obrázky jsou znovu zařazené do převodu.', 'mnddrilling-core' );
 	} elseif ( 'optimize' === $task ) {
 		global $wpdb;
 		$count = 0;
@@ -706,6 +806,11 @@ function mnd_core_maintenance_page() {
 		return;
 	}
 
+	// Zastavení automatického převodu na WebP.
+	if ( isset( $_GET['webp_stop'] ) && check_admin_referer( 'mnd_core_webp_stop' ) ) {
+		delete_transient( 'mnd_core_webp_auto_' . get_current_user_id() );
+	}
+
 	$tasks    = mnd_core_cleanup_tasks();
 	$theme    = wp_get_theme( get_template() );
 	$tables   = mnd_core_db_tables();
@@ -733,22 +838,57 @@ function mnd_core_maintenance_page() {
 			</tbody>
 		</table>
 
-		<?php if ( $pending ) : ?>
+		<?php
+		$failed = mnd_core_webp_failed();
+		$auto   = $pending && get_transient( 'mnd_core_webp_auto_' . get_current_user_id() );
+		?>
+		<?php if ( $pending || $failed ) : ?>
 			<h2><?php esc_html_e( 'Obrázky na WebP', 'mnddrilling-core' ); ?></h2>
+		<?php endif; ?>
+		<?php if ( $pending ) : ?>
 			<p>
 				<?php
-				/* translators: %d: number of images. */
-				echo esc_html( sprintf( __( 'Obrázků ve formátu JPG/PNG: %d. Převod je natrvalo: vznikne WebP verze všech velikostí, odkazy v obsahu se přepíšou a staré adresy přesměrují (301). Původní soubory se přesunou do karantény.', 'mnddrilling-core' ), count( $pending ) ) );
+				/* translators: 1: number of images, 2: max size in px. */
+				echo esc_html( sprintf( __( 'Obrázků ve formátu JPG/PNG: %1$d. Převod je natrvalo: vznikne WebP verze všech velikostí, fotky větší než %2$d px se zmenší (jako u nových nahrání), odkazy v obsahu se přepíšou a staré adresy přesměrují (301). Původní soubory se přesunou do karantény. Přílohy z formulářů (uploads/formidable) se nepřevádějí.', 'mnddrilling-core' ), count( $pending ), mnd_core_webp_max_size() ) );
 				?>
 			</p>
-			<?php
-			if ( mnd_core_webp_supported() ) {
+			<?php if ( $auto ) : ?>
+				<div class="notice notice-info inline"><p>
+					<span class="spinner is-active" style="float:none;margin:0 6px 0 0"></span>
+					<?php esc_html_e( 'Převod pokračuje automaticky dávkami po 40 s – nechte stránku otevřenou.', 'mnddrilling-core' ); ?>
+					<a href="<?php echo esc_url( wp_nonce_url( mnd_core_maintenance_url( array( 'webp_stop' => 1 ) ), 'mnd_core_webp_stop' ) ); ?>"><?php esc_html_e( 'Zastavit', 'mnddrilling-core' ); ?></a>
+				</p></div>
+				<form id="mnd-core-webp-continue" method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
+					<input type="hidden" name="action" value="mnd_core_maintenance">
+					<input type="hidden" name="task" value="webp">
+					<input type="hidden" name="item" value="">
+					<?php wp_nonce_field( 'mnd_core_maintenance_webp' ); ?>
+				</form>
+				<script>window.setTimeout( function () { document.getElementById( 'mnd-core-webp-continue' ).submit(); }, 1500 );</script>
+			<?php elseif ( mnd_core_webp_supported() ) : ?>
+				<?php
 				/* translators: %d: number of images. */
-				mnd_core_action_button( 'webp', __( 'Převést na WebP', 'mnddrilling-core' ), sprintf( __( 'Převést %d obrázků natrvalo na WebP?', 'mnddrilling-core' ), count( $pending ) ), true );
-			} else {
-				echo '<p><strong>' . esc_html__( 'Server neumí ukládat WebP (chybí podpora v GD/Imagick).', 'mnddrilling-core' ) . '</strong></p>';
-			}
-			?>
+				mnd_core_action_button( 'webp', __( 'Převést na WebP', 'mnddrilling-core' ), sprintf( __( 'Převést %d obrázků natrvalo na WebP? Před převodem mějte čerstvou zálohu.', 'mnddrilling-core' ), count( $pending ) ), true );
+				?>
+			<?php else : ?>
+				<p><strong><?php esc_html_e( 'Server neumí ukládat WebP (chybí podpora v GD/Imagick).', 'mnddrilling-core' ); ?></strong></p>
+			<?php endif; ?>
+		<?php endif; ?>
+		<?php if ( $failed ) : ?>
+			<details style="max-width:860px;margin:1em 0">
+				<summary>
+					<?php
+					/* translators: %d: number of images. */
+					echo esc_html( sprintf( __( 'Nepřevedené obrázky: %d (zůstávají JPG/PNG, web je zobrazuje dál)', 'mnddrilling-core' ), count( $failed ) ) );
+					?>
+				</summary>
+				<ul>
+					<?php foreach ( array_slice( $failed, 0, 100, true ) as $fail_id => $reason ) : ?>
+						<li><a href="<?php echo esc_url( get_edit_post_link( $fail_id ) ); ?>"><?php echo esc_html( wp_basename( (string) get_attached_file( $fail_id ) ) ); ?></a> – <?php echo esc_html( $reason ); ?></li>
+					<?php endforeach; ?>
+				</ul>
+				<?php mnd_core_action_button( 'webp_retry', __( 'Zkusit znovu', 'mnddrilling-core' ), __( 'Znovu zařadit nepřevedené obrázky do převodu?', 'mnddrilling-core' ) ); ?>
+			</details>
 		<?php endif; ?>
 
 		<h2><?php esc_html_e( 'Databáze', 'mnddrilling-core' ); ?></h2>
