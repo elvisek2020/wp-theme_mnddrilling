@@ -14,6 +14,7 @@ __pycache__/
 mnd-drilling.txt
 ctime.txt
 # interní dokumenty a vývojové pomůcky – do veřejného repa nepatří
+CLAUDE.md
 _docs/
 docs/
 mu-plugins/
