@@ -3,7 +3,7 @@
  * Plugin Name: MND Drilling Core
  * Plugin URI: https://github.com/elvisek2020/wp-theme_mnddrilling
  * Description: Funkce webu nezávislé na šabloně — typy obsahu a pole, pořadí přetažením, kategorie volných pozic, ochrana a log přihlášení, hardening a bezpečnostní hlavičky, WebP, sitemap a /llms.txt, automatické aktualizace, Údržba webu a Zdraví webu. Nahrazuje 4 pluginy. Vše jde zapnout a vypnout v Nastavení → MND Drilling Core.
- * Version: 0.3.1
+ * Version: 0.3.2
  * Requires at least: 6.6
  * Tested up to: 7.1
  * Requires PHP: 7.4
@@ -25,6 +25,7 @@ unset( $mnd_core_meta );
 // Moduly z inc/ – každý jde vypnout zakomentováním řádku.
 $mnd_core_modules = array(
 	'core',          // přihlášení, info o serveru, komentáře, aktualizace, WebP, hardening, Údržba webu, updater
+	'filenames',     // oprava názvů souborů s diakritikou (NFD na disku × NFC v databázi → 404)
 	'seo-extra',     // bezpečnostní hlavičky, sitemap, /llms.txt
 	'health',        // widget Zdraví webu na Nástěnce
 	'content-types', // typy obsahu a taxonomie (dřív ve staré šabloně)

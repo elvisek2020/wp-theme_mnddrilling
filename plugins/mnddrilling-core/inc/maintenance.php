@@ -217,6 +217,19 @@ function mnd_core_webp_max_size() {
 function mnd_core_webp_unify( $id ) {
 	global $wpdb;
 	$main = get_attached_file( $id );
+	// Soubory s diakritikou v jiném tvaru Unicode (NFD na disku) – nejdřív sjednotit názvy s databází.
+	if ( $main && function_exists( 'mnd_core_fix_name_form' ) ) {
+		mnd_core_fix_name_form( $main );
+		$fix_meta = wp_get_attachment_metadata( $id );
+		foreach ( is_array( $fix_meta ) && ! empty( $fix_meta['sizes'] ) ? (array) $fix_meta['sizes'] : array() as $fix_size ) {
+			if ( is_array( $fix_size ) && ! empty( $fix_size['file'] ) ) {
+				mnd_core_fix_name_form( dirname( $main ) . '/' . $fix_size['file'] );
+			}
+		}
+		if ( is_array( $fix_meta ) && ! empty( $fix_meta['original_image'] ) ) {
+			mnd_core_fix_name_form( dirname( $main ) . '/' . $fix_meta['original_image'] );
+		}
+	}
 	$rel  = (string) get_post_meta( $id, '_wp_attached_file', true );
 	if ( ! $main || ! is_file( $main ) || '' === $rel ) {
 		return new WP_Error( 'missing', __( 'Soubor chybí', 'mnddrilling-core' ) );
@@ -719,6 +732,9 @@ function mnd_core_maintenance_action() {
 		$msg = __( 'Všechny blokace přihlášení byly zrušeny.', 'mnddrilling-core' );
 	} elseif ( 'webp' === $task ) {
 		$msg = mnd_core_webp_unify_batch();
+	} elseif ( 'filenames' === $task && function_exists( 'mnd_core_fix_attachment_names' ) ) {
+		/* translators: %d: number of files. */
+		$msg = sprintf( __( 'Přejmenováno souborů: %d. Obrázky a dokumenty s diakritikou v názvu jsou zase dostupné.', 'mnddrilling-core' ), mnd_core_fix_attachment_names() );
 	} elseif ( 'webp_retry' === $task ) {
 		delete_metadata( 'post', 0, '_mnd_core_webp_fail', '', true );
 		$msg = __( 'Nepřevedené obrázky jsou znovu zařazené do převodu.', 'mnddrilling-core' );
@@ -837,6 +853,29 @@ function mnd_core_maintenance_page() {
 				<tr><th><?php esc_html_e( 'Prostředí', 'mnddrilling-core' ); ?></th><td><?php echo esc_html( wp_get_environment_type() ); ?></td></tr>
 			</tbody>
 		</table>
+
+		<?php $name_issues = function_exists( 'mnd_core_attachment_name_issues' ) ? mnd_core_attachment_name_issues() : array(); ?>
+		<?php if ( $name_issues ) : ?>
+			<h2><?php esc_html_e( 'Názvy souborů s diakritikou', 'mnddrilling-core' ); ?></h2>
+			<p>
+				<?php
+				/* translators: %d: number of files. */
+				echo esc_html( sprintf( __( 'Souborů, které web nenajde (adresa vrací 404): %d. Na disku mají název s diakritikou v jiném tvaru Unicode než v databázi (typicky nahrání z Macu). Oprava je přejmenuje na tvar z databáze – obsah ani odkazy se nemění.', 'mnddrilling-core' ), count( $name_issues ) ) );
+				?>
+			</p>
+			<details style="max-width:860px;margin-bottom:1em">
+				<summary><?php esc_html_e( 'Seznam souborů', 'mnddrilling-core' ); ?></summary>
+				<ul>
+					<?php foreach ( array_slice( $name_issues, 0, 200 ) as $issue ) : ?>
+						<li><code><?php echo esc_html( str_replace( trailingslashit( wp_get_upload_dir()['basedir'] ), '', $issue[1] ) ); ?></code></li>
+					<?php endforeach; ?>
+				</ul>
+			</details>
+			<?php
+			/* translators: %d: number of files. */
+			mnd_core_action_button( 'filenames', __( 'Opravit názvy souborů', 'mnddrilling-core' ), sprintf( __( 'Přejmenovat %d souborů na tvar názvu z databáze?', 'mnddrilling-core' ), count( $name_issues ) ), true );
+			?>
+		<?php endif; ?>
 
 		<?php
 		$failed = mnd_core_webp_failed();

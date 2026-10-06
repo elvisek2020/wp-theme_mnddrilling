@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.3.2 — 2026-10-06
+### MND Drilling Core
+- **Názvy souborů s diakritikou** (*Nástroje → Údržba webu*): část obrázků a PDF z let 2015–2021 má na serveru název v jiném tvaru Unicode než v databázi (nahrání z Macu), takže jejich adresy vracely 404 – např. doporučující dopisy na stránce Reference, téma diplomové práce nebo Zásady ochrany osobních údajů. Údržba je ukáže a tlačítkem *Opravit názvy souborů* přejmenuje na tvar z databáze; obsah ani odkazy se nemění
+- Převod na WebP takové názvy opraví sám a obrázky, které kvůli nim selhaly, vrátí do fronty
+
+### Šablona
+- Beze změny funkcí (verze srovnaná s pluginem)
+
 ## 0.3.1 — 2026-10-06
 ### MND Drilling Core
 - **Obrázky na WebP bezpečněji**: přílohy z formulářů (uploads/formidable – fotky a dokumenty uchazečů) se nepřevádějí ani při převodu starších obrázků, ani při nahrání, a v Údržbě se neukazují jako nepoužité

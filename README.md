@@ -66,6 +66,7 @@ Nahrazuje 4 dřívější pluginy (Simple Login Log, Server IP & Memory Usage, A
 - Největší soubory, nepoužité obrázky a rozbité interní odkazy
 - Převod starších obrázků na WebP (soubory i odkazy v obsahu, staré adresy přesměruje 301)
 - Úklid po odebraných pluginech a staré šabloně: tabulky, volby, metadata, role i složky jdou nejdřív do karantény
+- Oprava názvů souborů s diakritikou, které server nenašel (jiný tvar Unicode na disku a v databázi)
 
 ---
 
