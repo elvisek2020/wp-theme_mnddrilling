@@ -59,7 +59,7 @@ Nahrazuje 4 dřívější pluginy (Simple Login Log, Server IP & Memory Usage, A
 | Přihlášení | omezení pokusů s eskalací a whitelistem, **dvoufázové ověření** kódem z aplikace (povinné pro správce), log přihlášení (*Nástroje → Log přihlášení*), poslední přihlášení u uživatelů |
 | Bezpečnost | vypnuté XML-RPC a editor souborů, skrytá uživatelská jména a verze WordPressu, `readme.html` a `license.txt` nedostupné, bezpečnostní HTTP hlavičky |
 | Obrázky | nahrané JPG a PNG se uloží rovnou jako WebP, převod starších obrázků v Údržbě webu (přílohy z formulářů se nepřevádějí) |
-| SEO | sitemap s datem změny a bez uživatelů, `/llms.txt` s přehledem stránek obou jazyků |
+| SEO | sitemap s datem změny, bez uživatelů a bez slidů, `/llms.txt` s přehledem stránek obou jazyků |
 | Statistiky | počítadlo zobrazení stránek bez cookies a osobních údajů, nejčtenější ve widgetu Zdraví webu |
 | Aktualizace | automatické aktualizace WordPressu a pluginů, plugin i šablona z GitHub Releases |
 | Admin | informace o serveru v patičce administrace, widget Zdraví webu na Nástěnce |

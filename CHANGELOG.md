@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.5.2 — 2026-11-05
+
+### MND Drilling Core
+- **Sitemap bez slidů**: obrázky slideru na titulce (`/slide/…`, bez nadpisu a textu) už vyhledávačům nenabízí jako samostatné stránky
+
+### Šablona
+- Beze změny, jen číslo verze
+
 ## v0.5.1 — 2026-11-05
 
 ### Šablona

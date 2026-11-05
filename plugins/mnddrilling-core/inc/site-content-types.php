@@ -116,3 +116,15 @@ function mnd_core_register_content_types() {
 	}
 }
 add_action( 'init', 'mnd_core_register_content_types', 5 );
+
+/**
+ * Slidy jsou jen obrázky slideru na titulce (bez nadpisu a textu) – do sitemapy nepatří.
+ *
+ * @param array $post_types Typy obsahu v sitemapě.
+ * @return array
+ */
+function mnd_core_sitemap_post_types( $post_types ) {
+	unset( $post_types['slide'] );
+	return $post_types;
+}
+add_filter( 'wp_sitemaps_post_types', 'mnd_core_sitemap_post_types' );
