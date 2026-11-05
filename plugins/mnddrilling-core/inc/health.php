@@ -1,167 +1,193 @@
 <?php
 /**
- * Widget „Zdraví webu“ na Nástěnce: verze a aktualizace, databáze, obsah, přihlášení, poslední údržba.
- * Dražší čísla (velikost databáze, autoload a uploads) se drží 12 h v transientu, tlačítko Obnovit je přepočítá.
- * Verze a aktualizace se berou z mezipaměti WordPressu – nic se tu nestahuje.
- *
- * @package MNDDrillingCore
+ * EKC module: health
+ * Version: 1.1.0
+ * Requires: common
+ * Replaces: –
+ * Summary: Widget Zdraví webu na Nástěnce: verze a aktualizace, data, obsah, přihlášení, poslední údržba.
  */
 
 defined( 'ABSPATH' ) || exit;
 
-const MND_CORE_HEALTH_TTL = 12 * HOUR_IN_SECONDS;
-
-/**
- * Český tvar podle počtu (1 / 2–4 / 5+).
- *
- * @param int    $n    Počet.
- * @param string $one  Tvar pro 1.
- * @param string $few  Tvar pro 2–4.
- * @param string $many Tvar pro 0 a 5+.
- * @return string
+/*
+ * Verze a aktualizace se berou z mezipaměti WordPressu (nic se nestahuje). Dražší čísla
+ * (velikost databáze, autoload, uploads) drží transient ekc_health na 12 h, tlačítko Obnovit
+ * je přepočítá. Údaje volitelných modulů jen přes function_exists(); moduly přidávají řádky
+ * filtrem ekc_health_rows: [ 'Skupina' => [ 'Popisek' => 'HTML hodnota (escapovaná)' ] ].
  */
-function mnd_core_plural( $n, $one, $few, $many ) {
-	if ( 1 === $n ) {
-		return $one;
-	}
-	return ( $n >= 2 && $n <= 4 ) ? $few : $many;
-}
 
-/**
- * Údržba webu zaznamená čas posledního spuštění akce.
- */
-function mnd_core_health_mark_maintenance() {
-	update_option( 'mnd_core_last_maintenance', time(), false );
-	delete_transient( 'mnd_core_health' );
-}
+const EKC_HEALTH_TTL = 12 * HOUR_IN_SECONDS;
 
 /**
  * Velikost databáze, autoload a uploads (cache 12 h).
  *
  * @param bool $refresh Přepočítat.
- * @return array [db, autoload, uploads, at]
+ * @return array{db:int,autoload:int,uploads:int,at:int}
  */
-function mnd_core_health_heavy( $refresh = false ) {
-	$data = $refresh ? false : get_transient( 'mnd_core_health' );
-	if ( is_array( $data ) ) {
+function ekc_health_heavy( bool $refresh = false ): array {
+	$data = $refresh ? false : get_transient( 'ekc_health' );
+	if ( is_array( $data ) && isset( $data['at'] ) ) {
 		return $data;
 	}
-	$autoload = mnd_core_db_autoload();
-	$uploads  = wp_get_upload_dir();
 	@set_time_limit( 60 ); // phpcs:ignore WordPress.PHP.NoSilencedErrors
-	$data = array(
-		'db'       => mnd_core_db_size(),
+	$uploads  = wp_get_upload_dir();
+	$autoload = ekc_db_autoload();
+	$data     = array(
+		'db'       => ekc_db_size(),
 		'autoload' => (int) $autoload['total'],
-		'uploads'  => ! empty( $uploads['basedir'] ) ? mnd_core_path_size( $uploads['basedir'] ) : 0,
+		'uploads'  => ! empty( $uploads['basedir'] ) ? ekc_path_size( (string) $uploads['basedir'] ) : 0,
 		'at'       => time(),
 	);
-	set_transient( 'mnd_core_health', $data, MND_CORE_HEALTH_TTL );
+	set_transient( 'ekc_health', $data, EKC_HEALTH_TTL );
 	return $data;
 }
 
 /**
- * Registrace widgetu (jen administrátorům).
+ * Po úloze v Údržbě se velikosti přepočítají při dalším zobrazení.
  */
-function mnd_core_dashboard_widget_register() {
-	if ( current_user_can( 'manage_options' ) && mnd_core_on( 'health_widget' ) ) {
-		wp_add_dashboard_widget( 'mnd_core_status', __( 'Zdraví webu', 'mnddrilling-core' ), 'mnd_core_dashboard_widget', null, null, 'normal', 'high' );
-	}
+function ekc_health_flush(): void {
+	delete_transient( 'ekc_health' );
 }
-add_action( 'wp_dashboard_setup', 'mnd_core_dashboard_widget_register' );
+add_action( 'ekc_maintenance_done', 'ekc_health_flush' );
 
 /**
- * Obsah widgetu.
+ * Tlačítko Obnovit (index.php?ekc_health_refresh=1 s nonce) → přepočítat a přesměrovat zpět (PRG).
  */
-function mnd_core_dashboard_widget() {
-	$refresh = isset( $_GET['mnd_core_health_refresh'] ) && check_admin_referer( 'mnd_core_health_refresh' );
-	$heavy   = mnd_core_health_heavy( $refresh );
+function ekc_health_refresh(): void {
+	// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- ověřeno níže
+	if ( empty( $_GET['ekc_health_refresh'] ) || ! current_user_can( 'manage_options' ) ) {
+		return;
+	}
+	if ( wp_verify_nonce( sanitize_text_field( wp_unslash( $_GET['_wpnonce'] ?? '' ) ), 'ekc_health_refresh' ) ) {
+		ekc_health_heavy( true );
+	}
+	wp_safe_redirect( admin_url( 'index.php' ) );
+	exit;
+}
+add_action( 'load-index.php', 'ekc_health_refresh' );
+
+/**
+ * Registrace widgetu (jen administrátorům).
+ */
+function ekc_health_register(): void {
+	if ( current_user_can( 'manage_options' ) ) {
+		wp_add_dashboard_widget( 'ekc_health', 'Zdraví webu', 'ekc_health_widget', null, null, 'normal', 'high' );
+	}
+}
+add_action( 'wp_dashboard_setup', 'ekc_health_register' );
+
+/**
+ * Řádky widgetu.
+ *
+ * @return array<string,array<string,string>> skupina => popisek => HTML
+ */
+function ekc_health_rows(): array {
+	$ok    = ekc_status_dot( 'ok' );
+	$warn  = ekc_status_dot( 'warn' );
+	$heavy = ekc_health_heavy();
+	$upd   = admin_url( 'update-core.php' );
+	$new   = static fn( string $version ): string => '' !== $version
+		? ' ' . $warn . ' <a href="' . esc_url( $upd ) . '">k dispozici ' . esc_html( $version ) . '</a>'
+		: ' ' . $ok;
 
 	// Verze a dostupné aktualizace (z mezipaměti WordPressu).
-	$theme       = wp_get_theme( get_template() );
+	$theme       = wp_get_theme();
 	$upd_themes  = get_site_transient( 'update_themes' );
 	$upd_plugins = get_site_transient( 'update_plugins' );
-	$theme_new   = is_object( $upd_themes ) && isset( $upd_themes->response[ get_template() ]['new_version'] ) ? (string) $upd_themes->response[ get_template() ]['new_version'] : '';
-	$plugin_obj  = is_object( $upd_plugins ) && isset( $upd_plugins->response[ MND_CORE_BASENAME ] ) ? $upd_plugins->response[ MND_CORE_BASENAME ] : null;
-	$plugin_new  = is_object( $plugin_obj ) && isset( $plugin_obj->new_version ) ? (string) $plugin_obj->new_version : '';
+	$theme_new   = is_object( $upd_themes ) ? (string) ( $upd_themes->response[ $theme->get_stylesheet() ]['new_version'] ?? '' ) : '';
+	$plugin_obj  = is_object( $upd_plugins ) ? ( $upd_plugins->response[ EKC_BASENAME ] ?? null ) : null;
+	$plugin_new  = is_object( $plugin_obj ) ? (string) ( $plugin_obj->new_version ?? '' ) : '';
 	if ( ! function_exists( 'get_core_updates' ) ) {
 		require_once ABSPATH . 'wp-admin/includes/update.php';
 	}
 	$wp_upd  = get_core_updates();
 	$wp_new  = ( is_array( $wp_upd ) && isset( $wp_upd[0]->response ) && 'upgrade' === $wp_upd[0]->response ) ? (string) $wp_upd[0]->current : '';
-	$updates = wp_get_update_data();
+	$counts  = wp_get_update_data();
+	$total   = (int) ( $counts['counts']['total'] ?? 0 );
+	$theme_l = 'Šablona ' . $theme->get( 'Name' ) . ( $theme->parent() ? ' (podřízená)' : '' );
 
-	// Obsah a přihlášení.
-	$drafts   = (int) wp_count_posts( 'page' )->draft + (int) wp_count_posts( 'post' )->draft;
-	$comments = wp_count_comments();
-	$pending  = (int) $comments->moderated;
-	$log      = mnd_core_login_log( 200 );
-	$day_ago  = time() - DAY_IN_SECONDS;
-	$failed   = 0;
-	$last     = null;
-	foreach ( $log as $row ) {
-		if ( 'failed' === $row['e'] && $row['t'] >= $day_ago ) {
-			$failed++;
-		}
-		if ( ! $last && 'success' === $row['e'] ) {
-			$last = $row;
-		}
-	}
-	$maint = (int) get_option( 'mnd_core_last_maintenance', 0 );
-
-	$ok   = '<span style="color:#1a7f37">●</span>';
-	$warn = '<span style="color:#bf8700">●</span>';
-	$new  = function ( $version ) use ( $ok, $warn ) {
-		/* translators: %s: version. */
-		return $version ? ' ' . $warn . ' <a href="' . esc_url( admin_url( 'update-core.php' ) ) . '">' . esc_html( sprintf( __( 'k dispozici %s', 'mnddrilling-core' ), $version ) ) . '</a>' : ' ' . $ok;
-	};
-
-	$others = max( 0, (int) $updates['counts']['total'] - ( $wp_new ? 1 : 0 ) - ( $theme_new ? 1 : 0 ) - ( $plugin_new ? 1 : 0 ) );
-	$rows   = array(
-		__( 'Verze', 'mnddrilling-core' )      => array(
-			$theme->get( 'Name' )                      => esc_html( $theme->get( 'Version' ) ) . $new( $theme_new ),
-			'MND Drilling Core'                           => esc_html( MND_CORE_VERSION ) . $new( $plugin_new ),
-			'WordPress'                                => esc_html( get_bloginfo( 'version' ) ) . $new( $wp_new ),
-			'PHP'                                      => esc_html( PHP_VERSION ),
-			__( 'Další aktualizace', 'mnddrilling-core' ) => $others ? $warn . ' <a href="' . esc_url( admin_url( 'update-core.php' ) ) . '">' . esc_html( sprintf( mnd_core_plural( $others, __( 'čeká %d', 'mnddrilling-core' ), __( 'čekají %d', 'mnddrilling-core' ), __( 'čeká %d', 'mnddrilling-core' ) ), $others ) ) . '</a>' : '0 ' . $ok,
+	$rows = array(
+		'Verze'  => array(
+			$theme_l          => esc_html( (string) $theme->get( 'Version' ) ) . $new( $theme_new ),
+			EKC_NAME . ' Core' => esc_html( EKC_VERSION ) . $new( $plugin_new ),
+			'WordPress'       => esc_html( (string) get_bloginfo( 'version' ) ) . $new( $wp_new ),
+			'PHP'             => esc_html( PHP_VERSION ) . ( version_compare( PHP_VERSION, '8.1', '<' ) ? ' ' . $warn . ' doporučeno 8.1+' : ' ' . $ok ),
+			'Aktualizace'     => $total
+				? $warn . ' <a href="' . esc_url( $upd ) . '">' . esc_html( ekc_plural( $total, 'čeká %d', 'čekají %d', 'čeká %d' ) ) . '</a>'
+				: '0 ' . $ok,
 		),
-		__( 'Data', 'mnddrilling-core' )       => array(
-			__( 'Databáze', 'mnddrilling-core' ) => esc_html( size_format( $heavy['db'], 1 ) ),
-			__( 'Autoload', 'mnddrilling-core' ) => esc_html( size_format( $heavy['autoload'], 1 ) ) . ( $heavy['autoload'] > MB_IN_BYTES ? ' ' . $warn . ' ' . esc_html__( 'víc než 1 MB', 'mnddrilling-core' ) : ' ' . $ok ),
-			__( 'Uploads', 'mnddrilling-core' )  => esc_html( size_format( $heavy['uploads'], 1 ) ),
+		'Data'   => array(
+			'Databáze' => esc_html( ekc_size( (int) $heavy['db'] ) ),
+			'Autoload' => esc_html( ekc_size( (int) $heavy['autoload'] ) ) . ( $heavy['autoload'] > MB_IN_BYTES ? ' ' . $warn . ' víc než 1 MB' : ' ' . $ok ),
+			'Uploads'  => esc_html( ekc_size( (int) $heavy['uploads'] ) ),
 		),
-		__( 'Obsah', 'mnddrilling-core' )      => array(
-			__( 'Koncepty', 'mnddrilling-core' ) => (string) $drafts,
-		),
-		__( 'Přihlášení', 'mnddrilling-core' ) => array(
-			__( 'Neúspěšné za 24 h', 'mnddrilling-core' )   => (string) $failed . ( $failed > 20 ? ' ' . $warn : '' ),
-			__( 'Zablokované IP', 'mnddrilling-core' )      => (string) mnd_core_active_lockouts(),
-			__( 'Poslední přihlášení', 'mnddrilling-core' ) => $last ? esc_html( mnd_core_datetime( $last['t'] ) . ' · ' . $last['u'] ) : '—',
-		),
-		__( 'Údržba', 'mnddrilling-core' )     => array(
-			__( 'Naposledy', 'mnddrilling-core' ) => $maint ? esc_html( mnd_core_datetime( $maint ) . ' (' . human_time_diff( $maint ) . ')' ) : esc_html__( 'zatím nezaznamenáno', 'mnddrilling-core' ),
+		'Obsah'  => array(
+			'Koncepty' => sprintf( '<a href="%1$s">%2$d</a>', esc_url( admin_url( 'edit.php?post_status=draft&post_type=any' ) ), (int) wp_count_posts( 'post' )->draft + (int) wp_count_posts( 'page' )->draft ),
 		),
 	);
-	if ( ! mnd_core_on( 'comments_off' ) ) {
-		$rows[ __( 'Obsah', 'mnddrilling-core' ) ][ __( 'Komentáře ke schválení', 'mnddrilling-core' ) ] = $pending ? $warn . ' <a href="' . esc_url( admin_url( 'edit-comments.php?comment_status=moderated' ) ) . '">' . (int) $pending . '</a>' : '0 ' . $ok;
+
+	$pending = (int) wp_count_comments()->moderated;
+	if ( $pending || post_type_supports( 'post', 'comments' ) ) {
+		$rows['Obsah']['Komentáře ke schválení'] = $pending
+			? $warn . ' <a href="' . esc_url( admin_url( 'edit-comments.php?comment_status=moderated' ) ) . '">' . $pending . '</a>'
+			: '0 ' . $ok;
 	}
 
+	// Přihlášení – jen když běží moduly login-log / login-guard.
+	if ( function_exists( 'ekc_login_log' ) ) {
+		$failed = 0;
+		$last   = null;
+		$since  = time() - DAY_IN_SECONDS;
+		$twofa  = 0;
+		foreach ( (array) ekc_login_log( function_exists( 'ekc_login_log_max' ) ? ekc_login_log_max() : 200 ) as $row ) {
+			if ( in_array( $row['e'] ?? '', array( 'failed', 'twofactor' ), true ) && (int) $row['t'] >= $since ) {
+				++$failed;
+				$twofa += 'twofactor' === $row['e'] ? 1 : 0;
+			}
+			if ( ! $last && 'success' === ( $row['e'] ?? '' ) ) {
+				$last = $row;
+			}
+		}
+		$rows['Přihlášení']['Neúspěšné za 24 h']   = sprintf( '<a href="%1$s">%2$d</a>', esc_url( ekc_page_url( 'ekc-login-log' ) ), $failed ) . ( $failed > 20 ? ' ' . $warn : '' );
+		if ( $twofa ) {
+			$rows['Přihlášení']['Chybný kód 2FA za 24 h'] = sprintf( '<a href="%1$s">%2$d</a>', esc_url( ekc_page_url( 'ekc-login-log' ) ), $twofa ) . ' ' . ekc_status_dot( 'bad' ) . ' heslo zná někdo cizí, změňte ho';
+		}
+		$rows['Přihlášení']['Poslední přihlášení'] = $last ? esc_html( ekc_datetime( (int) $last['t'] ) . ' · ' . $last['u'] ) : '—';
+	}
+	if ( function_exists( 'ekc_lockouts_active' ) ) {
+		$locked = (int) ekc_lockouts_active();
+		$rows['Přihlášení']['Zablokované IP'] = $locked . ( $locked ? ' ' . $warn : ' ' . $ok );
+	}
+
+	$maint = (int) get_option( 'ekc_maint_last', 0 );
+	$rows['Údržba']['Naposledy'] = $maint
+		? esc_html( ekc_datetime( $maint ) . ' (' . human_time_diff( $maint ) . ')' )
+		: 'zatím nezaznamenáno';
+
+	return (array) apply_filters( 'ekc_health_rows', $rows );
+}
+
+/**
+ * Obsah widgetu.
+ */
+function ekc_health_widget(): void {
+	$heavy = ekc_health_heavy();
 	echo '<table class="widefat striped" style="border:0;box-shadow:none"><tbody>';
-	foreach ( $rows as $group => $items ) {
-		printf( '<tr><th colspan="2" style="padding-top:10px;font-weight:600">%s</th></tr>', esc_html( $group ) );
-		foreach ( $items as $label => $value ) {
-			printf( '<tr><td style="width:55%%">%s</td><td>%s</td></tr>', esc_html( $label ), $value ); // phpcs:ignore WordPress.Security.EscapeOutput -- hodnoty escapované výše
+	foreach ( ekc_health_rows() as $group => $items ) {
+		if ( ! $items ) {
+			continue;
+		}
+		printf( '<tr><th colspan="2" style="padding-top:10px;font-weight:600">%s</th></tr>', esc_html( (string) $group ) );
+		foreach ( (array) $items as $label => $value ) {
+			printf( '<tr><td style="width:55%%">%1$s</td><td>%2$s</td></tr>', esc_html( (string) $label ), wp_kses_post( (string) $value ) );
 		}
 	}
 	echo '</tbody></table>';
 	printf(
-		'<p style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin:12px 0 0"><span><a class="button" href="%1$s">%2$s</a> <a href="%3$s">%4$s</a></span><span style="color:#646970">%5$s · <a href="%6$s">%7$s</a></span></p>',
-		esc_url( mnd_core_maintenance_url() ),
-		esc_html__( 'Údržba webu', 'mnddrilling-core' ),
-		esc_url( mnd_core_settings_url() ),
-		esc_html__( 'Nastavení', 'mnddrilling-core' ),
-		/* translators: %s: date and time. */
-		esc_html( sprintf( __( 'Velikosti k %s', 'mnddrilling-core' ), wp_date( 'j. n. H:i', $heavy['at'] ) ) ),
-		esc_url( wp_nonce_url( admin_url( 'index.php?mnd_core_health_refresh=1' ), 'mnd_core_health_refresh' ) ),
-		esc_html__( 'Obnovit', 'mnddrilling-core' )
+		'<p style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin:12px 0 0"><span><a class="button" href="%1$s">Údržba webu</a> <a href="%2$s">Nastavení</a></span><span style="color:#646970">Velikosti k %3$s · <a href="%4$s">Obnovit</a></span></p>',
+		esc_url( ekc_page_url( 'ekc-udrzba' ) ),
+		esc_url( ekc_page_url( 'ekc-nastaveni' ) ),
+		esc_html( (string) wp_date( 'j. n. H:i', (int) $heavy['at'] ) ),
+		esc_url( wp_nonce_url( admin_url( 'index.php?ekc_health_refresh=1' ), 'ekc_health_refresh' ) )
 	);
 }

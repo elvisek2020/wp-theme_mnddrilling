@@ -1,11 +1,24 @@
 # Changelog
 
-## Nevydáno
+## v0.4.0 — 2026-11-05
+
+### MND Drilling Core
+- **Převod na kanonické moduly** skillu wp-custom-theme: plugin se skládá ze stejných modulů jako ostatní spravované weby (přihlášení, zabezpečení, WebP, sitemap, Údržba, Zdraví webu…), opravy se do nich dostanou stejnou cestou. Projektové části webu (typy obsahu, pole místo ACF, kategorie volných pozic, úklid po starých pluginech) zůstávají beze změny chování
+- **Dvoufázové ověření** (*Profil → Dvoufázové ověření*): po hesle šestimístný kód z aplikace v telefonu (Google/Microsoft Authenticator, 1Password, Bitwarden…), QR kód přímo v profilu, 10 záložních kódů. **Pro správce je povinné** – po prvním přihlášení po aktualizaci se správce dostane jen do profilu, dokud si ho nezapne. Editoři si ho můžou zapnout dobrovolně; aplikační hesla a ManageWP fungují dál
+- **Počítadlo zobrazení** stránek bez cookies a osobních údajů: sloupec Zobrazení v přehledech, nejčtenější stránky ve widgetu Zdraví webu
+- **Přihlášení**: nastavitelné okno pro počítání pokusů, eskalace blokace, whitelist adres a zrušení blokací v *Nástroje → Log přihlášení*; log zaznamenává i chybné kódy 2FA. Log i Poslední přihlášení se převedly, dosavadní aktivní blokace zaniknou
+- **Zabezpečení navíc**: `readme.html` a `license.txt` vrací 403 (blok v `.htaccess`), dávkové REST API jen pro přihlášené, hlavička Cross-Origin-Opener-Policy; `/sitemap.xml` přesměruje na sitemapu WordPressu
+- **Nastavení** (*Nastavení → MND Drilling Core*) v záložkách; řazení přetažením platí pro stejné typy obsahu jako dřív (stránky, slidy, historie, společnosti, pozice, dokumenty, položky, oblasti, lidé), `/llms.txt` dál jako přehled stránek obou jazyků s úvodem ze stránky O nás
+- Údržba webu: nově úklid automatických konceptů, prošlých transientů a osiřelých metadat po dávkách; staré adresy stránek Nastavení a Údržby přesměrují
+- Automatické aktualizace: plugin a šablona webu se aktualizují ručně (*Nástěnka → Aktualizace*), WordPress a ostatní pluginy dál automaticky
+- Vyžaduje PHP 8.1+ (web běží na 8.5)
+
+### Šablona
+- Beze změny, jen číslo verze
 
 ### Vydání
-- Vydání podle skillu wp-custom-theme: kontrola syntaxe v PHP 8.5 jako na produkci (`shivammathur/setup-php`), text vydání ze sekce CHANGELOGu, šablona je ve vydání povinná
-- Nadpisy verzí v CHANGELOGu s `v` (podle nich workflow hledá text vydání)
-- `.gitignore` je zase v repu (obecné vzory ze skillu); interní soubory jsou jen v lokálním `.git/info/exclude`
+- Vydání podle skillu wp-custom-theme: kontrola syntaxe v PHP 8.5 jako na produkci, text vydání ze sekce CHANGELOGu, šablona je ve vydání povinná
+- Nadpisy verzí v CHANGELOGu s `v`; `.gitignore` je zase v repu (obecné vzory ze skillu)
 
 ### Nástroje
 - `dev/setup.sh` bere zálohu z `../_backup/RRRR-MM-DD/`

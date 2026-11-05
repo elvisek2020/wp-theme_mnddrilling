@@ -1,26 +1,31 @@
 <?php
 /**
- * Názvy souborů s diakritikou: soubor na disku × záznam v databázi.
- *
- * Část souborů z let 2015–2021 má na serveru název v rozloženém tvaru Unicode (NFD – písmeno
- * a diakritické znaménko zvlášť, typicky nahrání z Macu), databáze a odkazy v textu ale složený
- * tvar (NFC). Linux je bere jako dva různé názvy → obrázek nebo PDF vrací 404.
- * Oprava přejmenuje soubor na tvar z databáze (odkazy v obsahu se tím rozjedou samy).
- * Funguje i bez rozšíření intl (vlastní mapa pro latinku), s ním navíc přes Normalizer.
- *
- * @package MNDDrillingCore
+ * EKC module: maint-filenames
+ * Version: 1.0.0
+ * Requires: common
+ * Replaces: –
+ * Summary: Opraví názvy souborů s diakritikou, které mají na disku jiný tvar Unicode (NFD z Macu) než v databázi.
  */
 
 defined( 'ABSPATH' ) || exit;
 
-/**
- * Složené znaky latinky (NFC) → rozložené (NFD), U+00C0–U+024F.
- *
- * @return array
+/*
+ * Soubory nahrané z Macu mají někdy na disku název v rozloženém tvaru Unicode (NFD – písmeno
+ * a diakritické znaménko zvlášť), databáze a odkazy ale složený tvar (NFC). Linux je bere jako
+ * dva různé názvy → obrázek nebo PDF vrací 404. Oprava v Údržbě přejmenuje soubor na tvar
+ * z databáze (odkazy se tím rozjedou samy). Funguje i bez rozšíření intl (vlastní mapa pro
+ * latinku), s ním navíc přes Normalizer. Modul webp volá ekc_filenames_fix_form() před převodem.
  */
-function mnd_core_nfd_map() {
+
+/**
+ * Složené znaky latinky (NFC) → rozložené (NFD), U+00C0–U+0233.
+ *
+ * @return array<string,string>
+ */
+function ekc_filenames_nfd_map(): array {
 	static $map = null;
 	if ( null === $map ) {
+		// phpcs:disable WordPress.Arrays.ArrayDeclarationSpacing, WordPress.Arrays.MultipleStatementAlignment
 		$map = array(
 			"À"=>"\u{0041}\u{0300}", "Á"=>"\u{0041}\u{0301}", "Â"=>"\u{0041}\u{0302}", "Ã"=>"\u{0041}\u{0303}", "Ä"=>"\u{0041}\u{0308}", "Å"=>"\u{0041}\u{030a}",
 			"Ç"=>"\u{0043}\u{0327}", "È"=>"\u{0045}\u{0300}", "É"=>"\u{0045}\u{0301}", "Ê"=>"\u{0045}\u{0302}", "Ë"=>"\u{0045}\u{0308}", "Ì"=>"\u{0049}\u{0300}",
@@ -65,6 +70,7 @@ function mnd_core_nfd_map() {
 			"Ȩ"=>"\u{0045}\u{0327}", "ȩ"=>"\u{0065}\u{0327}", "Ȫ"=>"\u{004f}\u{0308}\u{0304}", "ȫ"=>"\u{006f}\u{0308}\u{0304}", "Ȭ"=>"\u{004f}\u{0303}\u{0304}", "ȭ"=>"\u{006f}\u{0303}\u{0304}",
 			"Ȯ"=>"\u{004f}\u{0307}", "ȯ"=>"\u{006f}\u{0307}", "Ȱ"=>"\u{004f}\u{0307}\u{0304}", "ȱ"=>"\u{006f}\u{0307}\u{0304}", "Ȳ"=>"\u{0059}\u{0304}", "ȳ"=>"\u{0079}\u{0304}",
 		);
+		// phpcs:enable
 	}
 	return $map;
 }
@@ -75,10 +81,10 @@ function mnd_core_nfd_map() {
  * @param string $name Název souboru.
  * @return string[]
  */
-function mnd_core_name_variants( $name ) {
+function ekc_filenames_variants( string $name ): array {
 	$variants = array(
-		strtr( $name, mnd_core_nfd_map() ),
-		strtr( $name, array_flip( mnd_core_nfd_map() ) ),
+		strtr( $name, ekc_filenames_nfd_map() ),
+		strtr( $name, array_flip( ekc_filenames_nfd_map() ) ),
 	);
 	if ( class_exists( 'Normalizer' ) ) {
 		$variants[] = (string) Normalizer::normalize( $name, Normalizer::FORM_D );
@@ -91,13 +97,13 @@ function mnd_core_name_variants( $name ) {
  * Existující soubor, který se od zadané cesty liší jen tvarem diakritiky.
  *
  * @param string $path Očekávaná cesta.
- * @return string Cesta k nalezenému souboru, prázdný řetězec = není.
+ * @return string Nalezená cesta, '' = není.
  */
-function mnd_core_find_name_variant( $path ) {
+function ekc_filenames_find_variant( string $path ): string {
 	if ( is_file( $path ) || ! preg_match( '/[^\x20-\x7e]/', basename( $path ) ) ) {
 		return '';
 	}
-	foreach ( mnd_core_name_variants( basename( $path ) ) as $variant ) {
+	foreach ( ekc_filenames_variants( basename( $path ) ) as $variant ) {
 		$candidate = dirname( $path ) . '/' . $variant;
 		if ( is_file( $candidate ) ) {
 			return $candidate;
@@ -112,72 +118,125 @@ function mnd_core_find_name_variant( $path ) {
  * @param string $path Očekávaná cesta (tvar z databáze).
  * @return bool Soubor teď existuje pod očekávaným názvem.
  */
-function mnd_core_fix_name_form( $path ) {
+function ekc_filenames_fix_form( string $path ): bool {
 	if ( is_file( $path ) ) {
 		return true;
 	}
-	$found = mnd_core_find_name_variant( $path );
-	return $found && @rename( $found, $path ) && is_file( $path ); // phpcs:ignore WordPress.PHP.NoSilencedErrors, WordPress.WP.AlternativeFunctions
+	$found = ekc_filenames_find_variant( $path );
+	return '' !== $found && @rename( $found, $path ) && is_file( $path ); // phpcs:ignore WordPress.PHP.NoSilencedErrors, WordPress.WP.AlternativeFunctions
 }
 
 /**
  * Soubory příloh (všech typů), které na disku chybí, ale existují s jiným tvarem diakritiky.
  *
- * @return array [[id, cesta v DB, cesta na disku], …]
+ * @return array<int,array{0:int,1:string,2:string}> [ID, cesta podle databáze, cesta na disku]
  */
-function mnd_core_attachment_name_issues() {
+function ekc_filenames_issues(): array {
 	global $wpdb;
-	$base = trailingslashit( wp_get_upload_dir()['basedir'] );
-	$rows = $wpdb->get_results( "SELECT post_id, meta_key, meta_value FROM {$wpdb->postmeta} WHERE meta_key IN ('_wp_attached_file','_wp_attachment_metadata')" );
-	$files = array();
-	foreach ( (array) $rows as $row ) {
-		if ( '_wp_attached_file' === $row->meta_key ) {
-			$files[ (int) $row->post_id ][] = (string) $row->meta_value;
-			continue;
-		}
-		$meta = maybe_unserialize( $row->meta_value );
-		if ( ! is_array( $meta ) || empty( $meta['file'] ) ) {
-			continue;
-		}
-		$dir = dirname( (string) $meta['file'] );
-		$dir = '.' === $dir ? '' : $dir . '/';
-		foreach ( isset( $meta['sizes'] ) && is_array( $meta['sizes'] ) ? $meta['sizes'] : array() as $size ) {
-			if ( is_array( $size ) && ! empty( $size['file'] ) ) {
-				$files[ (int) $row->post_id ][] = $dir . $size['file'];
-			}
-		}
-		if ( ! empty( $meta['original_image'] ) ) {
-			$files[ (int) $row->post_id ][] = $dir . $meta['original_image'];
-		}
-	}
+	$base   = trailingslashit( (string) wp_get_upload_dir()['basedir'] );
 	$issues = array();
-	foreach ( $files as $id => $list ) {
-		foreach ( array_unique( $list ) as $rel ) {
-			if ( ! preg_match( '/[^\x20-\x7e]/', $rel ) ) {
+	$last   = 0;
+	do {
+		$rows = (array) $wpdb->get_results(
+			$wpdb->prepare(
+				"SELECT post_id, meta_key, meta_value FROM {$wpdb->postmeta} WHERE meta_key IN ('_wp_attached_file','_wp_attachment_metadata') AND post_id > %d AND post_id <= %d ORDER BY post_id",
+				$last,
+				$last + 1000
+			)
+		);
+		$more  = (int) $wpdb->get_var( $wpdb->prepare( "SELECT MIN(post_id) FROM {$wpdb->postmeta} WHERE meta_key = '_wp_attached_file' AND post_id > %d", $last + 1000 ) );
+		$files = array();
+		foreach ( $rows as $row ) {
+			if ( '_wp_attached_file' === $row->meta_key ) {
+				$files[ (int) $row->post_id ][] = (string) $row->meta_value;
 				continue;
 			}
-			$found = mnd_core_find_name_variant( $base . $rel );
-			if ( $found ) {
-				$issues[] = array( $id, $base . $rel, $found );
+			$meta = maybe_unserialize( $row->meta_value );
+			if ( ! is_array( $meta ) || empty( $meta['file'] ) ) {
+				continue;
+			}
+			$dir = dirname( (string) $meta['file'] );
+			$dir = '.' === $dir ? '' : $dir . '/';
+			foreach ( is_array( $meta['sizes'] ?? null ) ? $meta['sizes'] : array() as $size ) {
+				if ( is_array( $size ) && ! empty( $size['file'] ) ) {
+					$files[ (int) $row->post_id ][] = $dir . $size['file'];
+				}
+			}
+			if ( ! empty( $meta['original_image'] ) ) {
+				$files[ (int) $row->post_id ][] = $dir . $meta['original_image'];
 			}
 		}
-	}
+		foreach ( $files as $id => $list ) {
+			foreach ( array_unique( $list ) as $rel ) {
+				if ( ! preg_match( '/[^\x20-\x7e]/', $rel ) ) {
+					continue;
+				}
+				$found = ekc_filenames_find_variant( $base . $rel );
+				if ( '' !== $found ) {
+					$issues[] = array( (int) $id, $base . $rel, $found );
+				}
+			}
+		}
+		$last = $more ? $more - 1 : 0;
+	} while ( $more );
 	return $issues;
 }
 
 /**
- * Oprava všech názvů (přejmenování na tvar z databáze).
+ * Úloha Údržby: přejmenovat soubory na tvar z databáze (seznam se zjistí znovu na serveru).
  *
- * @return int Počet přejmenovaných souborů.
+ * @return array
  */
-function mnd_core_fix_attachment_names() {
-	$done = 0;
-	foreach ( mnd_core_attachment_name_issues() as $issue ) {
+function ekc_filenames_task_fix(): array {
+	$done   = 0;
+	$failed = 0;
+	foreach ( ekc_filenames_issues() as $issue ) {
 		if ( ! is_file( $issue[1] ) && @rename( $issue[2], $issue[1] ) ) { // phpcs:ignore WordPress.PHP.NoSilencedErrors, WordPress.WP.AlternativeFunctions
-			$done++;
-			// Obrázek, jehož převod na WebP selhal kvůli „chybějícímu“ souboru, jde znovu do fronty.
-			delete_post_meta( $issue[0], '_mnd_core_webp_fail' );
+			++$done;
+			delete_post_meta( $issue[0], '_ekc_webp_fail' ); // převod na WebP mohl selhat kvůli „chybějícímu“ souboru
+		} else {
+			++$failed;
 		}
 	}
-	return $done;
+	return array(
+		'message' => sprintf( 'Přejmenováno: %s. Soubory s diakritikou v názvu jsou zase dostupné.', ekc_plural( $done, '%d soubor', '%d soubory', '%d souborů' ) ) . ( $failed ? sprintf( ' Nepodařilo se: %d.', $failed ) : '' ),
+		'type'    => $failed ? 'warning' : 'success',
+	);
 }
+
+/**
+ * Sekce Údržby: Názvy souborů.
+ *
+ * @param string $id ID sekce.
+ */
+function ekc_filenames_render( string $id ): void {
+	echo '<p>Soubory s diakritikou v názvu, které web nenajde (adresa vrací 404), protože je mají na disku v jiném tvaru Unicode než v databázi (typicky nahrání z Macu). Oprava je přejmenuje – obsah ani odkazy se nemění.</p>';
+	if ( ! ekc_maintenance_showing( 'filenames' ) ) {
+		ekc_maintenance_show_link( $id, 'filenames', 'Zkontrolovat názvy souborů' );
+		return;
+	}
+	$issues = ekc_filenames_issues();
+	if ( ! $issues ) {
+		echo '<p>' . ekc_status_dot( 'ok' ) . ' Všechny názvy souborů odpovídají databázi.</p>'; // phpcs:ignore WordPress.Security.EscapeOutput
+		return;
+	}
+	$base = trailingslashit( (string) wp_get_upload_dir()['basedir'] );
+	echo '<details style="margin-bottom:1em"><summary>' . esc_html( sprintf( 'Souborů s jiným tvarem názvu: %d', count( $issues ) ) ) . '</summary><ul style="list-style:disc;margin-left:20px">';
+	foreach ( array_slice( $issues, 0, 200 ) as $issue ) {
+		echo '<li><code>' . esc_html( str_replace( $base, '', $issue[1] ) ) . '</code></li>';
+	}
+	echo '</ul></details>';
+	ekc_maintenance_button( $id, 'fix', 'Opravit názvy souborů', sprintf( 'Přejmenovat %d souborů na tvar názvu z databáze?', count( $issues ) ), true );
+}
+
+ekc_maintenance_section(
+	'filenames',
+	array(
+		'title'  => 'Názvy souborů s diakritikou',
+		'order'  => 12,
+		'render' => 'ekc_filenames_render',
+		'tasks'  => array(
+			'fix' => 'ekc_filenames_task_fix',
+		),
+	)
+);

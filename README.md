@@ -2,7 +2,7 @@
 
 [![Release](https://img.shields.io/github/v/release/elvisek2020/wp-theme_mnddrilling?label=release)](https://github.com/elvisek2020/wp-theme_mnddrilling/releases/latest)
 ![WordPress](https://img.shields.io/badge/WordPress-6.6%2B-21759b)
-![PHP](https://img.shields.io/badge/PHP-7.4%2B-777bb4)
+![PHP](https://img.shields.io/badge/PHP-8.1%2B-777bb4)
 ![License](https://img.shields.io/badge/license-GPL--2.0--or--later-blue)
 
 Vlastní šablona a doprovodný plugin pro firemní web [www.mnd-drilling.eu](https://www.mnd-drilling.eu) (MND Drilling & Services a.s.) — vzhled původní šablony z roku 2022, ale responzivní, bez jQuery, bez build kroku a bez externích služeb (Google Analytics jen se souhlasem návštěvníka).
@@ -46,7 +46,7 @@ Dlaždice a menu v patičce se spravují ve *Vzhled → Menu*, adresa a kontakty
 
 ## Plugin MND Drilling Core
 
-Nahrazuje 4 dřívější pluginy (Simple Login Log, Server IP & Memory Usage, Advanced Custom Fields, Simple Custom Post Order) a typy obsahu ze staré šablony. Funguje nezávisle na šabloně, každou funkci jde vypnout v *Nastavení → MND Drilling Core*.
+Nahrazuje 4 dřívější pluginy (Simple Login Log, Server IP & Memory Usage, Advanced Custom Fields, Simple Custom Post Order) a typy obsahu ze staré šablony a funguje nezávisle na šabloně. Skládá se z kanonických modulů skillu wp-custom-theme (`inc/*.php`, stejné na všech spravovaných webech) a projektových modulů webu (`inc/site-*.php`). Nastavení je v *Nastavení → MND Drilling Core*.
 
 | Oblast | Co dělá |
 |---|---|
@@ -54,15 +54,16 @@ Nahrazuje 4 dřívější pluginy (Simple Login Log, Server IP & Memory Usage, A
 | Pole | dokumenty ke stažení u stránky, soubor dokumentu, kategorie položek, rozmezí let a země – ve stejných polích jako ACF, data zůstávají |
 | Pořadí | řazení podle pořadí na webu a přetahování řádků v přehledech administrace |
 | Volné pozice | kategorie s kontaktními e-maily (*Volné pozice → Kategorie a e-maily*) a výběr kategorie u pozice |
-| Přihlášení | omezení pokusů o přihlášení, log přihlášení (*Nástroje → Log přihlášení*), poslední přihlášení u uživatelů |
-| Bezpečnost | vypnuté XML-RPC a editor souborů, skrytá uživatelská jména a verze WordPressu, bezpečnostní HTTP hlavičky |
-| Obrázky | nahrané JPG a PNG se uloží rovnou jako WebP, převod starších obrázků v Údržbě webu |
+| Přihlášení | omezení pokusů s eskalací a whitelistem, **dvoufázové ověření** kódem z aplikace (povinné pro správce), log přihlášení (*Nástroje → Log přihlášení*), poslední přihlášení u uživatelů |
+| Bezpečnost | vypnuté XML-RPC a editor souborů, skrytá uživatelská jména a verze WordPressu, `readme.html` a `license.txt` nedostupné, bezpečnostní HTTP hlavičky |
+| Obrázky | nahrané JPG a PNG se uloží rovnou jako WebP, převod starších obrázků v Údržbě webu (přílohy z formulářů se nepřevádějí) |
 | SEO | sitemap s datem změny a bez uživatelů, `/llms.txt` s přehledem stránek obou jazyků |
-| Aktualizace | automatické aktualizace WordPressu a pluginů podle nastavení, plugin i šablona z GitHub Releases |
+| Statistiky | počítadlo zobrazení stránek bez cookies a osobních údajů, nejčtenější ve widgetu Zdraví webu |
+| Aktualizace | automatické aktualizace WordPressu a pluginů, plugin i šablona z GitHub Releases |
 | Admin | informace o serveru v patičce administrace, widget Zdraví webu na Nástěnce |
 
 **Údržba webu** — *Nástroje → Údržba webu*
-- Přehled databáze (velikost tabulek, autoload) a optimalizace, úklid revizí, konceptů, koše a transientů
+- Přehled databáze (velikost tabulek, autoload) a optimalizace, úklid revizí, konceptů, koše, transientů a osiřelých metadat
 - Největší soubory, nepoužité obrázky a rozbité interní odkazy
 - Převod starších obrázků na WebP (soubory i odkazy v obsahu, staré adresy přesměruje 301)
 - Úklid po odebraných pluginech a staré šabloně: tabulky, volby, metadata, role i složky jdou nejdřív do karantény
@@ -73,7 +74,7 @@ Nahrazuje 4 dřívější pluginy (Simple Login Log, Server IP & Memory Usage, A
 ## Požadavky
 
 - WordPress 6.6+ (testováno do 7.1)
-- PHP 7.4+ (doporučeno 8.x) s podporou WebP v GD nebo Imagick
+- PHP 8.1+ s podporou WebP v GD nebo Imagick
 - Polylang (vícejazyčnost CZ / EN)
 
 ## Instalace
@@ -105,14 +106,16 @@ tools/                      pomocné skripty
 
 Šablona i plugin mají společnou verzi.
 
-1. Zvyšte `Version:` v `theme/mnddrilling/style.css` **i** v `plugins/mnddrilling-core/mnddrilling-core.php` a doplňte [`CHANGELOG.md`](CHANGELOG.md).
+1. Zvyšte `Version:` v `theme/mnddrilling/style.css` **i** v `plugins/mnddrilling-core/mnddrilling-core.php` a doplňte [`CHANGELOG.md`](CHANGELOG.md) (sekce `## vX.Y.Z — RRRR-MM-DD`).
 2. Commit a anotovaný tag:
    ```bash
    git add -A && git commit -m "X.Y.Z: …"
    git status                      # musí být čisto
-   git tag -a vX.Y.Z -m "X.Y.Z" && git push && git push --tags
+   git tag -a vX.Y.Z -m "X.Y.Z" && git push origin HEAD && git push origin vX.Y.Z
    ```
-3. GitHub Action ověří, že tag odpovídá verzím, zkontroluje syntaxi PHP, sestaví `mnddrilling.zip` a `mnddrilling-core.zip` a vytvoří Release.
+3. GitHub Action ověří, že tag odpovídá verzím, zkontroluje syntaxi PHP 8.5 (jako produkce), sestaví `mnddrilling.zip` a `mnddrilling-core.zip` a vytvoří Release s textem z CHANGELOGu.
+
+**Kanonické moduly** (plugin `inc/*.php` s hlavičkou `EKC module:`, šablona `inc/ekt/` a `assets/ekt/`) jsou kopie ze skillu wp-custom-theme a na webu se neupravují — změna patří do skillu a sem se dostane přes `scripts/modules.py sync`. Projektové části webu jsou v `inc/site-*.php` (plugin) a v šablonových souborech, `inc/*.php` mimo `inc/ekt/` a `assets/css`, `assets/js` (šablona).
 
 ## Licence
 
