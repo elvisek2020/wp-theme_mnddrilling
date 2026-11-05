@@ -1,5 +1,19 @@
 # Changelog
 
+## v0.5.0 — 2026-11-05
+
+### Šablona
+- **Převod na kanonické moduly** skillu wp-custom-theme: SEO, GA4 s cookie lištou, prohlížeč obrázků, ikony sítí, česká typografie, texty pro Polylang a aktualizace jsou stejné moduly jako na ostatních spravovaných webech (`inc/ekt/`). **Vzhled zůstává stejný** – cookie lišta, prohlížeč obrázků i ikony v patičce vypadají jako dřív
+- **Česká typografie** nově drží i spojky a předložky „a“, „i“, „o“, „u“ s následujícím slovem – některé řádky textu se proto zalomí jinak (nezůstane jednopísmenné slovo na konci řádku)
+- **SEO**: odkaz canonical i na titulce, obrázek pro sdílení na sítích z ikony webu (dřív odkaz na neexistující soubor), vydavatel v JSON-LD s logem; popis titulky dál z textu „O nás“
+- **Cookie lišta**: dosavadní souhlas návštěvníků platí dál (převezme se), texty česky i anglicky beze změny
+- **Přizpůsobit → MND Drilling**: sekce Obecné (interval slideru), SEO a analytika (GA4 ID se převzalo samo), Sociální sítě (YouTube a LinkedIn – dřív napevno v patičce)
+- Externí odkazy v textu stránek se otevírají v novém okně, vložená videa jsou responzivní
+- Vyžaduje PHP 8.1+ (web běží na 8.5)
+
+### MND Drilling Core
+- Beze změny, jen číslo verze
+
 ## v0.4.0 — 2026-11-05
 
 ### MND Drilling Core

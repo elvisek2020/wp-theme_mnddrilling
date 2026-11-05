@@ -16,7 +16,7 @@ $mnd_image = has_post_thumbnail( $mnd_item );
 	<?php endif; ?>
 	<div class="mnd-item__text">
 		<h2 class="mnd-item__title"><?php echo esc_html( mnd_title_text( $mnd_item ) ); ?></h2>
-		<div class="mnd-entry">
+		<div class="mnd-entry" data-ekt-content>
 			<?php echo apply_filters( 'the_content', $mnd_item->post_content ); // phpcs:ignore WordPress.Security.EscapeOutput -- výstup filtru the_content ?>
 		</div>
 		<?php

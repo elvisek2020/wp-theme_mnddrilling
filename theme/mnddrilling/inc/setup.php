@@ -1,6 +1,6 @@
 <?php
 /**
- * Základní nastavení šablony: podpora funkcí WordPressu, menu, widgety, velikosti obrázků.
+ * Základní nastavení šablony: menu, widgety, velikosti obrázků, šířka obsahu.
  *
  * Umístění menu, oblasti widgetů a velikosti obrázků mají stejné názvy jako v původní
  * šabloně, takže se po přepnutí přiřazení zachová a obrázky není potřeba přegenerovat.
@@ -14,13 +14,8 @@ defined( 'ABSPATH' ) || exit;
  * Nastavení šablony po jejím načtení.
  */
 function mnd_setup() {
-	add_theme_support( 'title-tag' );
-	add_theme_support( 'post-thumbnails' );
-	add_theme_support( 'responsive-embeds' );
-	add_theme_support( 'html5', array( 'search-form', 'gallery', 'caption', 'style', 'script', 'navigation-widgets' ) );
-
+	// title-tag, post-thumbnails, responsive-embeds, editor-styles a html5 zapíná inc/ekt/common.php.
 	// Editor vypadá jako web; paleta a velikosti písma jsou v theme.json.
-	add_theme_support( 'editor-styles' );
 	add_editor_style( 'assets/css/editor.css' );
 
 	register_nav_menus(
@@ -36,6 +31,15 @@ function mnd_setup() {
 	add_image_size( 'flag-image', 95, 50, true );
 }
 add_action( 'after_setup_theme', 'mnd_setup' );
+
+/**
+ * Bez odkazů na RSS v hlavičce: web nemá články a původní šablona je nevypisovala
+ * (automatic-feed-links zapíná inc/ekt/common.php).
+ */
+function mnd_no_feed_links() {
+	remove_theme_support( 'automatic-feed-links' );
+}
+add_action( 'after_setup_theme', 'mnd_no_feed_links', 20 );
 
 /**
  * Šířka obsahu pro vložená média (sloupec vedle podmenu).
@@ -78,10 +82,4 @@ function mnd_widgets_init() {
 }
 add_action( 'widgets_init', 'mnd_widgets_init' );
 
-/**
- * Stránky mají stručný výpis (slouží jako popis pro vyhledávače).
- */
-function mnd_page_excerpt() {
-	add_post_type_support( 'page', 'excerpt' );
-}
-add_action( 'init', 'mnd_page_excerpt' );
+// Stručný výpis u stránek (popis pro vyhledávače) zapíná modul inc/ekt/seo.php.

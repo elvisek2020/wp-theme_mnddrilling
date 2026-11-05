@@ -35,7 +35,7 @@ $mnd_title  = isset( $args['title'] ) ? (string) $args['title'] : mnd_title_text
 			<?php endif; ?>
 
 			<?php if ( ! isset( $args['show_content'] ) || $args['show_content'] ) : ?>
-				<div class="mnd-entry<?php echo empty( $args['content_class'] ) ? '' : ' ' . esc_attr( $args['content_class'] ); ?>">
+				<div class="mnd-entry<?php echo empty( $args['content_class'] ) ? '' : ' ' . esc_attr( $args['content_class'] ); ?>" data-ekt-content>
 					<?php echo apply_filters( 'the_content', $mnd_page->post_content ); // phpcs:ignore WordPress.Security.EscapeOutput -- výstup filtru the_content ?>
 				</div>
 			<?php endif; ?>

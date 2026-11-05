@@ -13,6 +13,9 @@ defined( 'ABSPATH' ) || exit;
  * @return bool
  */
 function mnd_is_en() {
+	if ( function_exists( 'ekt_lang' ) ) {
+		return 'en' === ekt_lang();
+	}
 	$lang = function_exists( 'pll_current_language' ) ? (string) pll_current_language() : substr( get_locale(), 0, 2 );
 	return 'en' === $lang;
 }

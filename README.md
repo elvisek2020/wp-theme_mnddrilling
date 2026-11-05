@@ -29,16 +29,18 @@ Obojí se vydává společně se stejným číslem verze a aktualizuje se přím
 - Prohlížeč obrázků z odkazů v textu, tisková verze bez navigace
 
 **Technicky**
-- Hybridní šablona: PHP šablony a `theme.json`, moduly v `inc/` jdou vypnout jednotlivě
+- Hybridní šablona: PHP šablony a `theme.json`; funkce (SEO, GA4 s cookie lištou, prohlížeč obrázků, sítě, typografie, texty pro Polylang, aktualizace) jsou kanonické moduly skillu wp-custom-theme v `inc/ekt/`, vzhled je vlastní
 - Čeština a angličtina přes Polylang, texty šablony jdou přeložit v *Jazyky → Překlady textů*
-- SEO: meta description, Open Graph, JSON-LD; česká typografie (pevné mezery)
-- Google Analytics 4 s vlastní cookie lištou — načte se jen se souhlasem a jen když je vyplněné ID (převezme se z MonsterInsights)
+- SEO: meta description, canonical, Open Graph, JSON-LD; česká typografie (pevné mezery za předložkami a spojkami, mezi číslem a jednotkou)
+- Google Analytics 4 s vlastní cookie lištou (Consent Mode v2) — načte se jen se souhlasem a jen když je vyplněné ID
 
 **Nastavení** — *Vzhled → Přizpůsobit → MND Drilling*
 
 | Sekce | Volby |
 |---|---|
-| MND Drilling | interval slideru na titulce, Google Analytics 4 ID |
+| Obecné | interval slideru na titulce |
+| SEO a analytika | Google Analytics 4 ID, popis webu pro vyhledávače |
+| Sociální sítě | odkazy na YouTube a LinkedIn ve spodní liště (prázdné = ikona se skryje) |
 
 Dlaždice a menu v patičce se spravují ve *Vzhled → Menu*, adresa a kontakty v patičce ve *Vzhled → Widgety*, obrázky slideru ve *Slidy*. Podrobnosti v [`theme/mnddrilling/README.md`](theme/mnddrilling/README.md).
 

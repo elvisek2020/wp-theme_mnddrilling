@@ -4,26 +4,25 @@ Vlastní šablona pro [www.mnd-drilling.eu](https://www.mnd-drilling.eu). Vzhled
 
 Typy obsahu (položky, dokumenty, volné pozice, lidé…), pole stránek a řazení jsou v pluginu **MND Drilling Core** – bez něj se část webu nezobrazí (šablona v administraci upozorní).
 
+Funkce šablony (SEO, GA4 s cookie lištou, prohlížeč obrázků, sítě, typografie, texty pro Polylang, aktualizace) jsou **kanonické moduly** skillu wp-custom-theme v `inc/ekt/` a `assets/ekt/` – na webu se neupravují, mění se ve skillu (`scripts/modules.py sync`). Vzhled a projektové části jsou v ostatních souborech.
+
 ## Struktura
 
 | Cesta | Obsah |
 |---|---|
-| `style.css` | hlavička šablony (verze) |
-| `functions.php` | konstanty `MND_VERSION` / `MND_DIR` / `MND_URI` a seznam modulů z `inc/` |
+| `style.css` | hlavička šablony (verze, `Update URI` pro aktualizace) |
+| `functions.php` | identita `EKT_*` a načtení modulů (kanon `inc/ekt/`, projektové `inc/*.php`, `inc/site-*.php`) |
 | `theme.json` | paleta, písmo a šířky pro editor |
-| `inc/setup.php` | podpora šablony, umístění menu (`homepage-menu`, `footer-menu`), widgety patičky, velikosti obrázků – stejné názvy jako v původní šabloně |
-| `inc/assets.php` | CSS a JS s verzí podle data změny souboru, favicon |
-| `inc/cleanup.php` | bez emoji a zbytečných odkazů v `<head>` |
+| `inc/ekt/` | kanonické moduly: `common` (Přizpůsobit, setup, úklid `<head>`, upozornění na chybějící plugin, migrace), `seo`, `analytics` (GA4 + cookie lišta), `lightbox`, `content-links`, `embeds`, `social`, `typography`, `polylang`, `updater` |
+| `inc/setup.php` | umístění menu (`homepage-menu`, `footer-menu`), widgety patičky, velikosti obrázků – stejné názvy jako v původní šabloně |
+| `inc/assets.php` | CSS a JS šablony s verzí podle data změny souboru, favicon |
 | `inc/template-tags.php` | texty CZ/EN (`mnd_t`), čistý text názvu (`mnd_title_text`), ikony, logo, podmenu sekce, dokumenty ke stažení, stránkování |
-| `inc/polylang.php` | přeložitelné texty (Jazyky → Překlady textů), přepínač jazyků, převzetí menu po aktivaci |
+| `inc/polylang.php` | přepínač jazyků, texty šablony do registru `ekt_pll()` (Jazyky → Překlady textů) |
 | `inc/navigation.php` | dlaždice divizí z hlavního menu |
 | `inc/forms.php` | třída `form mnd-form` na formulářích Formidable, předvyplnění pozice z `?pozice=` (na serveru) |
-| `inc/typography.php` | české pevné mezery za předložkami a mezi číslem a jednotkou |
-| `inc/seo.php` | meta description, Open Graph, JSON-LD |
-| `inc/customizer.php` | Vzhled → Přizpůsobit → MND Drilling (interval slideru, GA4 ID) |
-| `inc/analytics-consent.php` | GA4 s cookie lištou, převzetí ID z MonsterInsights |
-| `inc/updater.php` | aktualizace z GitHub Releases |
-| `inc/plugin-check.php` | upozornění, když chybí plugin MND Drilling Core |
+| `inc/customizer.php` | Přizpůsobit → MND Drilling → Obecné: interval slideru |
+| `inc/site-mnddrilling.php` | nastavení kanonu pro web: výchozí odkazy YouTube a LinkedIn, texty cookie lišty a prohlížeče obrázků CZ/EN, popis pro vyhledávače z „O nás“, logo v JSON-LD |
+| `template-parts/ekt/social.php` | vlastní markup ikon sítí ve spodní liště (šedá kolečka) |
 | `header.php`, `footer.php` | hlavička (logo, název, hledání, jazyk, slider na titulce), patička (menu, widgety, Compliance Hotline, sítě) |
 | `index.php` | titulka (dlaždice divizí) |
 | `page-parent.php` | hlavní stránka divize – obsah první podstránky |
@@ -38,8 +37,9 @@ Typy obsahu (položky, dokumenty, volné pozice, lidé…), pole stránek a řaz
 | `template-parts/section.php` | rozvržení sekce: dlaždice, podmenu, obsah |
 | `template-parts/body-*.php`, `item.php` | katalog položek, lidé, volné pozice, tlačítka u pozice, medailonek |
 | `template-parts/slider.php` | slider na titulce (Slidy) |
-| `assets/css/` | `main.css` (proměnné nahoře), `editor.css`, `print.css` |
-| `assets/js/` | `theme.js` (mobilní menu, podmenu, katalog, slider, lightbox), `consent.js` (cookie lišta) |
+| `assets/css/` | `main.css` (proměnné nahoře včetně mostu `--ekt-*`), `editor.css`, `print.css` |
+| `assets/js/` | `theme.js` (mobilní menu, podmenu, katalog, slider, tlačítko Přiložit) |
+| `assets/ekt/` | skripty a funkční styly kanonických modulů (cookie lišta, lightbox, videa) |
 | `assets/img/` | logo, ikony dlaždic, ikona certifikátu a Compliance Hotline |
 
 ## Nastavení
@@ -47,6 +47,7 @@ Typy obsahu (položky, dokumenty, volné pozice, lidé…), pole stránek a řaz
 - **Dlaždice divizí**: Vzhled → Menu → „Hlavní menu CZ/EN“ (pořadí určuje ikonu a odstín zelené).
 - **Menu v patičce**: Vzhled → Menu → „Menu v zápatí CZ/EN“.
 - **Adresa a kontakty v patičce**: Vzhled → Widgety → „Patička – Sídlo firmy“ a „Patička – Kontakty“.
-- **Slider**: Slidy (náhledový obrázek 1600 × 420 px, pořadí přetažením), interval v Přizpůsobit → MND Drilling.
+- **Slider**: Slidy (náhledový obrázek 1600 × 420 px, pořadí přetažením), interval v Přizpůsobit → MND Drilling → Obecné.
 - **Texty šablony v angličtině**: Jazyky → Překlady textů → skupina „MND Drilling“.
-- **Google Analytics 4**: Přizpůsobit → MND Drilling → ID měření (převezme se samo z MonsterInsights).
+- **Google Analytics 4**: Přizpůsobit → MND Drilling → SEO a analytika (prázdné ID = bez měření i bez cookie lišty).
+- **Sociální sítě** ve spodní liště: Přizpůsobit → MND Drilling → Sociální sítě (prázdná hodnota ikonu skryje).

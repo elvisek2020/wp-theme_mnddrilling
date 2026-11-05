@@ -1,10 +1,11 @@
 <?php
 /**
- * Integrace s Polylangem (čeština / angličtina).
+ * Polylang (čeština / angličtina): přepínač jazyků a přeložitelné texty šablony.
  *
- * Texty šablony, které jde překládat v Jazyky → Překlady textů, mají stejné zdrojové
- * řetězce jako původní šablona – uložené anglické překlady zůstávají. Kde překlad
- * chybí, angličtina dostane výchozí text (dřív se na anglickém webu ukazovala čeština).
+ * Registr a překlad textů dělá kanonický modul inc/ekt/polylang.php (ekt_pll(), skupina „MND Drilling“
+ * v Jazyky → Překlady textů). Zdrojové řetězce jsou stejné jako v původní šabloně, takže uložené
+ * anglické překlady zůstávají; kde překlad chybí, angličtina dostane výchozí text níže.
+ * Převzetí menu po jazycích při přepnutí šablony dělá inc/ekt/common.php.
  * Šablona funguje i bez Polylangu – přepínač jazyků se pak jen nezobrazí.
  *
  * @package MNDDrilling
@@ -40,33 +41,24 @@ function mnd_pll_strings() {
 }
 
 /**
- * Registrace textů do Jazyky → Překlady textů (skupina „MND Drilling“).
+ * Texty šablony do registru kanonu (filtr ekt_pll_strings).
+ *
+ * @param array $strings Registr.
+ * @return array
  */
-function mnd_pll_register_strings() {
-	if ( ! function_exists( 'pll_register_string' ) ) {
-		return;
-	}
-	foreach ( array_keys( mnd_pll_strings() ) as $string ) {
-		pll_register_string( $string, $string, 'MND Drilling' );
-	}
+function mnd_pll_register( array $strings ): array {
+	return $strings + mnd_pll_strings();
 }
-add_action( 'init', 'mnd_pll_register_strings' );
+add_filter( 'ekt_pll_strings', 'mnd_pll_register' );
 
 /**
- * Přeložený text šablony.
+ * Přeložený text šablony (dřívější název; volá ekt_pll()).
  *
  * @param string $string Zdrojový (český) text.
  * @return string
  */
 function mnd_pll( $string ) {
-	$translated = function_exists( 'pll__' ) ? pll__( $string ) : $string;
-	if ( $translated === $string && mnd_is_en() ) {
-		$defaults = mnd_pll_strings();
-		if ( isset( $defaults[ $string ] ) ) {
-			return $defaults[ $string ];
-		}
-	}
-	return $translated;
+	return function_exists( 'ekt_pll' ) ? ekt_pll( (string) $string ) : (string) $string;
 }
 
 /**
@@ -95,52 +87,3 @@ function mnd_languages() {
 	);
 	return $languages;
 }
-
-/**
- * Po přepnutí šablony převezme přiřazení menu pro jednotlivé jazyky (doplní chybějící).
- *
- * Polylang si přiřazení menu ukládá zvlášť pro každou šablonu, takže by po
- * aktivaci nové šablony dlaždice a menu v patičce „zmizely“.
- *
- * @param string   $old_name  Název předchozí šablony.
- * @param WP_Theme $old_theme Předchozí šablona.
- */
-function mnd_pll_migrate_menus( $old_name, $old_theme = null ) {
-	if ( ! function_exists( 'PLL' ) || ! $old_theme instanceof WP_Theme ) {
-		return;
-	}
-
-	$old_slug = $old_theme->get_stylesheet();
-	$new_slug = get_stylesheet();
-	$options  = PLL()->options;
-	$menus    = isset( $options['nav_menus'] ) ? (array) $options['nav_menus'] : array();
-
-	if ( empty( $menus[ $old_slug ] ) || ! is_array( $menus[ $old_slug ] ) ) {
-		return;
-	}
-
-	$new     = isset( $menus[ $new_slug ] ) && is_array( $menus[ $new_slug ] ) ? $menus[ $new_slug ] : array();
-	$changed = false;
-	foreach ( $menus[ $old_slug ] as $location => $languages ) {
-		foreach ( (array) $languages as $lang => $menu_id ) {
-			if ( $menu_id && empty( $new[ $location ][ $lang ] ) ) {
-				$new[ $location ][ $lang ] = (int) $menu_id;
-				$changed                   = true;
-			}
-		}
-	}
-	if ( ! $changed ) {
-		return;
-	}
-	$menus[ $new_slug ] = $new;
-
-	if ( is_object( $options ) && method_exists( $options, 'set' ) ) {
-		$options->set( 'nav_menus', $menus ); // Polylang 3.7+
-	} else {
-		$raw              = get_option( 'polylang', array() );
-		$raw['nav_menus'] = $menus;
-		update_option( 'polylang', $raw );
-	}
-}
-// Priorita 20 = až po mapování menu, které při přepnutí šablony dělá WordPress.
-add_action( 'after_switch_theme', 'mnd_pll_migrate_menus', 20, 2 );

@@ -17,7 +17,7 @@ get_header();
 			<header class="mnd-page__header">
 				<h1 class="mnd-page__title"><?php the_title(); ?></h1>
 			</header>
-			<div class="mnd-entry"><?php the_content(); ?></div>
+			<div class="mnd-entry" data-ekt-content><?php the_content(); ?></div>
 			<?php mnd_page_documents( get_the_ID() ); ?>
 			<?php mnd_edit_links( get_the_ID() ); ?>
 		</article>

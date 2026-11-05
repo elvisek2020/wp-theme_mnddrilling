@@ -44,12 +44,14 @@ defined( 'ABSPATH' ) || exit;
 	<div class="mnd-inner mnd-bottom__inner">
 		<?php mnd_logo( 'mnd-bottom__logo' ); ?>
 		<p class="mnd-bottom__text">
-			Member of KKCG Group | Copyright © <?php echo esc_html( wp_date( 'Y' ) ); ?> MND Drilling &amp; Services a.s.<?php do_action( 'mnd_footer_info' ); ?>
+			Member of KKCG Group | Copyright © <?php echo esc_html( wp_date( 'Y' ) ); ?> MND Drilling &amp; Services a.s.<?php
+			$mnd_consent = function_exists( 'ekt_consent_link' ) ? ekt_consent_link() : '';
+			if ( '' !== $mnd_consent ) {
+				echo '<span class="mnd-footer__consent"> | ' . $mnd_consent . '</span>'; // phpcs:ignore WordPress.Security.EscapeOutput -- escapováno v ekt_consent_link()
+			}
+			?>
 		</p>
-		<ul class="mnd-social">
-			<li><a href="https://www.youtube.com/@mnddrillingservices7650/videos" class="mnd-social__link mnd-social__link--yt" target="_blank" rel="noopener" title="MND Drilling &amp; Services na YouTube"><?php echo mnd_icon( 'youtube', 15 ); // phpcs:ignore WordPress.Security.EscapeOutput ?><span class="screen-reader-text">YouTube</span></a></li>
-			<li><a href="https://www.linkedin.com/company/mnd-drilling-and-services" class="mnd-social__link mnd-social__link--li" target="_blank" rel="noopener" title="MND Drilling &amp; Services na LinkedIn"><?php echo mnd_icon( 'linkedin', 15 ); // phpcs:ignore WordPress.Security.EscapeOutput ?><span class="screen-reader-text">LinkedIn</span></a></li>
-		</ul>
+		<?php echo function_exists( 'ekt_social_links' ) ? ekt_social_links() : ''; // phpcs:ignore WordPress.Security.EscapeOutput -- markup v template-parts/ekt/social.php ?>
 	</div>
 </footer>
 

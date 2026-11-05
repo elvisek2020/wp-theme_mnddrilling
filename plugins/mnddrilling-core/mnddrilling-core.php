@@ -3,7 +3,7 @@
  * Plugin Name:       MND Drilling Core
  * Plugin URI:        https://github.com/elvisek2020/wp-theme_mnddrilling
  * Description:       Funkce webu MND Drilling nezávislé na šabloně — přihlášení s dvoufázovým ověřením, zabezpečení, WebP, sitemap a /llms.txt, Údržba a Zdraví webu, typy obsahu, pole a kategorie volných pozic. Nahrazuje 4 pluginy.
- * Version:           0.4.0
+ * Version:           0.5.0
  * Requires at least: 6.4
  * Tested up to:      7.1
  * Requires PHP:      8.1

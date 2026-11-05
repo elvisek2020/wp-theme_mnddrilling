@@ -1,80 +1,46 @@
 <?php
 /**
- * Nastavení šablony v Přizpůsobení (Vzhled → Přizpůsobit → MND Drilling).
+ * Projektová volba v Přizpůsobit (Vzhled → Přizpůsobit → MND Drilling → Obecné): interval slideru.
+ *
+ * ID měření GA4 je v sekci SEO a analytika (kanonický modul analytics, dřív theme_mod mnd_ga_id –
+ * převede ho migrace common), sítě v sekci Sociální sítě (modul social).
  *
  * @package MNDDrilling
  */
 
 defined( 'ABSPATH' ) || exit;
 
+ekt_setting_register(
+	'site_slider_interval',
+	array(
+		'type'        => 'number',
+		'default'     => 4,
+		'label'       => 'Interval slideru na titulce (sekundy)',
+		'description' => 'Obrázky slideru se spravují v menu Slidy (náhledový obrázek, pořadí přetažením).',
+		'section'     => 'general',
+		'priority'    => 10,
+		'input_attrs' => array(
+			'min'  => 3,
+			'max'  => 20,
+			'step' => 1,
+		),
+		'sanitize'    => static function ( $value ): int {
+			return max( 3, min( 20, absint( $value ) ) );
+		},
+	)
+);
+
 /**
- * Registrace nastavení.
+ * Starý theme_mod mnd_slider_interval → ekt_site_slider_interval (migrace common, jednou).
  *
- * @param WP_Customize_Manager $wp_customize Správce přizpůsobení.
+ * @param array  $map Mapa starý klíč => nový.
+ * @param string $p   Starý prefix.
+ * @return array
  */
-function mnd_customize_register( $wp_customize ) {
-	$wp_customize->add_section(
-		'mnddrilling',
-		array(
-			'title'    => __( 'MND Drilling', 'mnddrilling' ),
-			'priority' => 30,
-		)
-	);
-
-	$wp_customize->add_setting(
-		'mnd_slider_interval',
-		array(
-			'default'           => 4,
-			'sanitize_callback' => 'mnd_sanitize_interval',
-		)
-	);
-	$wp_customize->add_control(
-		'mnd_slider_interval',
-		array(
-			'label'       => __( 'Interval slideru na titulce (sekundy)', 'mnddrilling' ),
-			'description' => __( 'Obrázky slideru se spravují v menu Slides (náhledový obrázek, pořadí přetažením).', 'mnddrilling' ),
-			'section'     => 'mnddrilling',
-			'type'        => 'number',
-			'input_attrs' => array(
-				'min'  => 3,
-				'max'  => 20,
-				'step' => 1,
-			),
-		)
-	);
-
-	$wp_customize->add_setting(
-		'mnd_ga_id',
-		array(
-			'default'           => '',
-			'sanitize_callback' => 'mnd_sanitize_ga_id',
-		)
-	);
-	$wp_customize->add_control(
-		'mnd_ga_id',
-		array(
-			'label'       => __( 'Google Analytics 4 – ID měření', 'mnddrilling' ),
-			'description' => __( 'Např. G-XXXXXXXXXX. Návštěvník nejdřív uvidí cookie lištu, měří se až po souhlasu. Prázdné = bez měření. Dokud je aktivní MonsterInsights, šablona GA nevkládá.', 'mnddrilling' ),
-			'section'     => 'mnddrilling',
-			'type'        => 'text',
-		)
-	);
+function mnd_customizer_legacy_map( array $map, string $p ): array {
+	if ( 'mnd' === $p ) {
+		$map['mnd_slider_interval'] = 'ekt_site_slider_interval';
+	}
+	return $map;
 }
-add_action( 'customize_register', 'mnd_customize_register' );
-
-/**
- * @param mixed $value Hodnota.
- * @return int
- */
-function mnd_sanitize_interval( $value ) {
-	return max( 3, min( 20, absint( $value ) ) );
-}
-
-/**
- * @param string $value Hodnota.
- * @return string
- */
-function mnd_sanitize_ga_id( $value ) {
-	$value = strtoupper( trim( (string) $value ) );
-	return preg_match( '/^G-[A-Z0-9]+$/', $value ) ? $value : '';
-}
+add_filter( 'ekt_legacy_mod_map', 'mnd_customizer_legacy_map', 10, 2 );

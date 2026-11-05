@@ -29,6 +29,15 @@
 	--mnd-bullet: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8'%3E%3Ccircle cx='4' cy='4' r='4' fill='%239ed54c'/%3E%3C/svg%3E");
 	--mnd-chevron-white: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 7 12'%3E%3Cpath d='m1 1 5 5-5 5' fill='none' stroke='%23fff' stroke-width='1.5'/%3E%3C/svg%3E");
 	--mnd-chevron-down: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 11 6'%3E%3Cpath d='m.5.5 5 5 5-5' fill='none' stroke='%23b4b3aa' stroke-width='1.2'/%3E%3C/svg%3E");
+
+	/* Kanonické moduly šablony (inc/ekt/) – jejich proměnné napojené na barvy MND */
+	--ekt-accent: var(--mnd-green);
+	--ekt-bg: #fff;
+	--ekt-fg: var(--mnd-text);
+	--ekt-muted: #808080;
+	--ekt-border: var(--mnd-gray);
+	--ekt-radius: 5px;
+	--ekt-lightbox-backdrop: rgb(0 0 0 / 0.85);
 }
 
 /* ===== Základ ===== */
@@ -1175,8 +1184,8 @@ body .frm_forms .mnd-form .frm_error_style {
 	background-color: #bf2123;
 }
 
-/* ===== Cookie lišta ===== */
-.mnd-consent {
+/* ===== Cookie lišta (kanonický modul analytics, markup .ekt-consent) ===== */
+.ekt-consent {
 	position: fixed;
 	right: 16px;
 	bottom: 16px;
@@ -1195,21 +1204,21 @@ body .frm_forms .mnd-form .frm_error_style {
 	color: #fff;
 }
 
-.mnd-consent[hidden] {
+.ekt-consent[hidden] {
 	display: none;
 }
 
-.mnd-consent__text {
+.ekt-consent__text {
 	flex: 1 1 320px;
 	margin: 0;
 }
 
-.mnd-consent__actions {
+.ekt-consent__actions {
 	display: flex;
 	gap: 10px;
 }
 
-.mnd-consent__button {
+.ekt-consent__btn {
 	padding: 8px 15px;
 	border: 1px solid #fff;
 	border-radius: 5px;
@@ -1219,53 +1228,45 @@ body .frm_forms .mnd-form .frm_error_style {
 	cursor: pointer;
 }
 
-.mnd-consent__button--accept {
+.ekt-consent__btn--accept {
 	border-color: var(--mnd-green);
 	background: var(--mnd-green);
 }
 
-.mnd-consent__button:hover {
+.ekt-consent__btn:hover {
 	background: var(--mnd-text);
 	border-color: var(--mnd-text);
 }
 
-/* ===== Prohlížeč obrázků (lightbox) ===== */
-.mnd-lightbox {
-	position: fixed;
-	inset: 0;
-	z-index: 5000;
-	display: flex;
-	align-items: center;
-	justify-content: center;
+/* ===== Prohlížeč obrázků (kanonický modul lightbox, <dialog class="ekt-lightbox">) ===== */
+.ekt-lightbox__stage {
 	padding: 40px 60px;
-	background: rgb(0 0 0 / 0.85);
 }
 
-.mnd-lightbox[hidden] {
-	display: none;
-}
-
-.mnd-lightbox img {
-	max-width: 100%;
-	max-height: 100%;
+.ekt-lightbox__img {
 	box-shadow: 0 0 30px rgb(0 0 0 / 0.5);
 }
 
-.mnd-lightbox button {
-	position: absolute;
+.ekt-lightbox__btn {
 	width: 44px;
 	height: 44px;
-	border: 0;
 	background: none;
 	color: #fff;
-	font-size: 34px;
-	line-height: 1;
-	cursor: pointer;
 }
 
-.mnd-lightbox__close { top: 10px; right: 10px; }
-.mnd-lightbox__prev { top: 50%; left: 10px; margin-top: -22px; }
-.mnd-lightbox__next { top: 50%; right: 10px; margin-top: -22px; }
+.ekt-lightbox__btn svg {
+	width: 30px;
+	height: 30px;
+}
+
+.ekt-lightbox__close { top: 10px; right: 10px; }
+.ekt-lightbox__prev { left: 10px; }
+.ekt-lightbox__next { right: 10px; }
+
+.ekt-lightbox__caption {
+	color: #fff;
+	font-family: var(--mnd-font);
+}
 
 /* ===== Do 939 px: mobilní hlavička, obsah pod sebou ===== */
 @media (max-width: 939px) {

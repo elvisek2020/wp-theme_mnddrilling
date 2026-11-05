@@ -1,6 +1,6 @@
 <?php
 /**
- * Styly a skripty.
+ * Styly a skripty šablony (kanonické moduly si své assets načítají samy).
  *
  * @package MNDDrilling
  */
@@ -39,18 +39,10 @@ function mnd_enqueue_assets() {
 		'mnd-theme',
 		'mndL10n',
 		array(
-			'prev'     => mnd_t( 'Předchozí', 'Previous' ),
-			'next'     => mnd_t( 'Další', 'Next' ),
-			'close'    => mnd_t( 'Zavřít', 'Close' ),
-			'interval' => (int) get_theme_mod( 'mnd_slider_interval', 4 ) * 1000,
+			'interval' => (int) ekt_opt( 'site_slider_interval' ) * 1000,
 		)
 	);
-
-	// Nepotřebné pro návštěvníky.
-	wp_dequeue_style( 'classic-theme-styles' );
-	if ( ! is_user_logged_in() ) {
-		wp_dequeue_style( 'dashicons' );
-	}
+	// classic-theme-styles a dashicons pro nepřihlášené odebírá inc/ekt/common.php.
 }
 add_action( 'wp_enqueue_scripts', 'mnd_enqueue_assets', 20 );
 

@@ -5,8 +5,9 @@
  * 2) Výběr podstránky na mobilu
  * 3) Katalog položek a lidé: výběr položky (adresy #item-ID z původní šablony fungují dál)
  * 4) Slider na titulce
- * 5) Prohlížeč obrázků z odkazů v textu
- * 6) Formidable: tlačítko „Přiložit“ u nahrání souboru
+ * 5) Formidable: tlačítko „Přiložit“ u nahrání souboru
+ *
+ * Prohlížeč obrázků je kanonický modul lightbox, cookie lišta modul analytics (inc/ekt/).
  */
 ( function () {
 	'use strict';
@@ -181,81 +182,7 @@
 		start();
 	}
 
-	/* 5) Prohlížeč obrázků */
-	var imageLinks = Array.prototype.filter.call( document.querySelectorAll( '.mnd-entry a[href]' ), function ( a ) {
-		return /\.(jpe?g|png|gif|webp|avif)(\?.*)?$/i.test( a.getAttribute( 'href' ) );
-	} );
-	if ( imageLinks.length ) {
-		var box = document.createElement( 'div' );
-		var index = 0;
-		box.className = 'mnd-lightbox';
-		box.hidden = true;
-		box.setAttribute( 'role', 'dialog' );
-		box.setAttribute( 'aria-modal', 'true' );
-		box.innerHTML = '<img alt=""><button type="button" class="mnd-lightbox__close">×</button>' +
-			( imageLinks.length > 1 ? '<button type="button" class="mnd-lightbox__prev">‹</button><button type="button" class="mnd-lightbox__next">›</button>' : '' );
-		document.body.appendChild( box );
-		var img = box.querySelector( 'img' );
-		box.querySelector( '.mnd-lightbox__close' ).setAttribute( 'aria-label', l10n.close || 'Zavřít' );
-		if ( imageLinks.length > 1 ) {
-			box.querySelector( '.mnd-lightbox__prev' ).setAttribute( 'aria-label', l10n.prev || 'Předchozí' );
-			box.querySelector( '.mnd-lightbox__next' ).setAttribute( 'aria-label', l10n.next || 'Další' );
-		}
-		var lastFocus = null;
-
-		var open = function ( i ) {
-			index = ( i + imageLinks.length ) % imageLinks.length;
-			var link = imageLinks[ index ];
-			var thumb = link.querySelector( 'img' );
-			img.src = link.href;
-			img.alt = thumb ? thumb.alt : '';
-			if ( box.hidden ) {
-				lastFocus = document.activeElement;
-				box.hidden = false;
-				box.querySelector( '.mnd-lightbox__close' ).focus();
-			}
-		};
-		var close = function () {
-			box.hidden = true;
-			img.removeAttribute( 'src' );
-			if ( lastFocus ) {
-				lastFocus.focus();
-			}
-		};
-
-		imageLinks.forEach( function ( link, i ) {
-			link.addEventListener( 'click', function ( e ) {
-				if ( e.metaKey || e.ctrlKey || e.shiftKey ) {
-					return;
-				}
-				e.preventDefault();
-				open( i );
-			} );
-		} );
-		box.addEventListener( 'click', function ( e ) {
-			if ( e.target.closest( '.mnd-lightbox__prev' ) ) {
-				open( index - 1 );
-			} else if ( e.target.closest( '.mnd-lightbox__next' ) ) {
-				open( index + 1 );
-			} else if ( e.target !== img ) {
-				close();
-			}
-		} );
-		document.addEventListener( 'keydown', function ( e ) {
-			if ( box.hidden ) {
-				return;
-			}
-			if ( 'Escape' === e.key ) {
-				close();
-			} else if ( 'ArrowLeft' === e.key && imageLinks.length > 1 ) {
-				open( index - 1 );
-			} else if ( 'ArrowRight' === e.key && imageLinks.length > 1 ) {
-				open( index + 1 );
-			}
-		} );
-	}
-
-	/* 6) Formidable: „Přiložit“ místo anglického „Drop a file here or click to upload“ */
+	/* 5) Formidable: „Přiložit“ místo anglického „Drop a file here or click to upload“ */
 	document.querySelectorAll( '.mnd-form .frm_upload_text button' ).forEach( function ( button ) {
 		button.textContent = isEn ? 'Attach' : 'Přiložit';
 	} );
