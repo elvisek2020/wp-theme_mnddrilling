@@ -1035,6 +1035,12 @@ body .frm_forms .mnd-form .input.file .frm_dropzone .dz-preview {
 	margin-top: 8px;
 }
 
+/* Pole „Jiný“ u výběru (titul v osobním dotazníku) jen po zvolení „Jiný“. Novější Formidable
+   ho v opakovaných sekcích odkrývá pravidlem .frm_section_heading .frm_pos_none { display: block }. */
+body .frm_forms .mnd-form .frm_other_input.frm_pos_none {
+	display: none;
+}
+
 /* Odeslat – zelené tlačítko v obou formulářích (v dotazníku bylo bílé na bílém).
    Selektory začínají „body .frm_forms“, aby přebily styl Formidable (.frm_style_….with_frm_style). */
 body .frm_forms .mnd-form input[type="submit"],

@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.5.1 — 2026-11-05
+
+### Šablona
+- **Osobní dotazník**: pod výběrem titulu (před jménem i za jménem) už není vidět prázdné pole navíc – ukáže se jen po zvolení „Jiný“. Odkrývalo ho nové pravidlo ve stylech aktualizovaného Formidable
+
+### MND Drilling Core
+- Beze změny, jen číslo verze
+
 ## v0.5.0 — 2026-11-05
 
 ### Šablona
