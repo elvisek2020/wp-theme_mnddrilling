@@ -1,14 +1,14 @@
 #!/usr/bin/env bash
-# Jednorázové spuštění lokálního webu ze zálohy (../backup-*/: files/www = webroot, db/ = dump).
-#   ./setup.sh                       nejnovější ../backup-*/
-#   ./setup.sh ../backup-2026-10-05  konkrétní záloha
+# Jednorázové spuštění lokálního webu ze zálohy (../_backup/RRRR-MM-DD/: files/www = webroot, db/ = dump).
+#   ./setup.sh                       nejnovější ../_backup/*/
+#   ./setup.sh ../_backup/2026-10-05  konkrétní záloha
 set -euo pipefail
 cd "$(dirname "$0")"
 
-BACKUP="${1:-$(ls -d ../backup-*/ 2>/dev/null | sort | tail -1)}"
+BACKUP="${1:-$(ls -d ../_backup/*/ 2>/dev/null | sort | tail -1)}"
 BACKUP="${BACKUP%/}"
 if [ ! -d "$BACKUP/files/www" ] || [ ! -d "$BACKUP/db" ]; then
-	echo "Chybí záloha se složkami files/www a db/ – zadejte cestu: ./setup.sh ../backup-RRRR-MM-DD"
+	echo "Chybí záloha se složkami files/www a db/ – zadejte cestu: ./setup.sh ../_backup/RRRR-MM-DD"
 	exit 1
 fi
 

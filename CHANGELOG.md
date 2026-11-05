@@ -1,13 +1,23 @@
 # Changelog
 
-## 0.3.4 — 2026-10-06
+## Nevydáno
+
+### Vydání
+- Vydání podle skillu wp-custom-theme: kontrola syntaxe v PHP 8.5 jako na produkci (`shivammathur/setup-php`), text vydání ze sekce CHANGELOGu, šablona je ve vydání povinná
+- Nadpisy verzí v CHANGELOGu s `v` (podle nich workflow hledá text vydání)
+- `.gitignore` je zase v repu (obecné vzory ze skillu); interní soubory jsou jen v lokálním `.git/info/exclude`
+
+### Nástroje
+- `dev/setup.sh` bere zálohu z `../_backup/RRRR-MM-DD/`
+
+## v0.3.4 — 2026-10-06
 ### Šablona
 - **Mobil – dlaždice divizí zpět nahoře na každé stránce**, ale kompaktní (na telefonu 3 × 2, nižší než v 0.3.3). Při rolování odjedou pryč, nahoře zůstane hlavička s hamburger menu a divize jsou dál v něm
 
 ### MND Drilling Core
 - Beze změny funkcí (verze srovnaná se šablonou)
 
-## 0.3.3 — 2026-10-06
+## v0.3.3 — 2026-10-06
 ### Šablona
 - **Kompaktnější mobil**: na podstránkách se na telefonu už neukazuje šest velkých dlaždic přes celou obrazovku – stránka začíná rovnou výběrem podstránky a obsahem. Divize jsou v hamburger menu jako malé dlaždice (3 v řadě) spolu s jazykem a hledáním
 - Na titulce zůstávají dlaždice, ale menší (na telefonu 3 v řadě, na tabletu všech 6 v jedné řadě)
@@ -17,7 +27,7 @@
 ### MND Drilling Core
 - Beze změny funkcí (verze srovnaná se šablonou)
 
-## 0.3.2 — 2026-10-06
+## v0.3.2 — 2026-10-06
 ### MND Drilling Core
 - **Názvy souborů s diakritikou** (*Nástroje → Údržba webu*): část obrázků a PDF z let 2015–2021 má na serveru název v jiném tvaru Unicode než v databázi (nahrání z Macu), takže jejich adresy vracely 404 – např. doporučující dopisy na stránce Reference, téma diplomové práce nebo Zásady ochrany osobních údajů. Údržba je ukáže a tlačítkem *Opravit názvy souborů* přejmenuje na tvar z databáze; obsah ani odkazy se nemění
 - Převod na WebP takové názvy opraví sám a obrázky, které kvůli nim selhaly, vrátí do fronty
@@ -25,7 +35,7 @@
 ### Šablona
 - Beze změny funkcí (verze srovnaná s pluginem)
 
-## 0.3.1 — 2026-10-06
+## v0.3.1 — 2026-10-06
 ### MND Drilling Core
 - **Obrázky na WebP bezpečněji**: přílohy z formulářů (uploads/formidable – fotky a dokumenty uchazečů) se nepřevádějí ani při převodu starších obrázků, ani při nahrání, a v Údržbě se neukazují jako nepoužité
 - **Velké fotky**: při převodu se zmenší na 2560 px (jako WordPress dělá u nových nahrání), nezmenšené originály jdou rovnou do karantény bez načítání – převod nespadne na paměti
@@ -36,7 +46,7 @@
 ### Šablona
 - Beze změny funkcí (verze srovnaná s pluginem)
 
-## 0.3.0 — 2026-10-05
+## v0.3.0 — 2026-10-05
 ### Šablona
 - **Nová šablona MND Drilling se stejným vzhledem jako původní** „Ultimate for MND Drilling & Services“: hlavička s logem a názvem, slider na titulce, zelené dlaždice divizí, podmenu sekce v rámečku, obsah 630 px, tmavá patička s Compliance Hotline a spodní lišta se sítěmi – kód je nový, bez jQuery a bez šesti jQuery knihoven
 - **Všechny šablony stránek** pod stejnými názvy jako dřív (nadřazená stránka, podstránka, s položkami, lidé, volné pozice, formulář, 2 sloupce; historie, společnosti a mapa pro koncepty), přiřazení stránek zůstává
@@ -58,7 +68,7 @@
 ### Nástroje
 - `dev/setup.sh` aktivuje plugin i šablonu a nahrazené pluginy přesune do `dev/_disabled-plugins/`
 
-## 0.2.0 — 2026-10-05
+## v0.2.0 — 2026-10-05
 ### MND Drilling Core
 - **Typy obsahu ze staré šablony**: Slidy, Historie, Společnosti, Volné pozice, Dokumenty, Položky, Oblasti, Lidé a kategorie položek a skupiny společností registruje plugin se stejnými názvy a adresami – obsah přežije výměnu šablony
 - **Pole místo Advanced Custom Fields**: dokumenty ke stažení u stránky (pořadí šipkami), soubor dokumentu z knihovny médií, kategorie položek, rozmezí let a země; ukládá se do stejných polí jako ACF, dokud je ACF zapnutý, pole ukazuje ono
@@ -80,7 +90,7 @@
 ### Nástroje
 - `dev/`: lokální WordPress v Dockeru na http://localhost:8322 ze zálohy (`setup.sh`)
 
-## 0.1.0 — 2026-10-05
+## v0.1.0 — 2026-10-05
 ### Šablona
 - **Kostra šablony MND Drilling**: hlavička, seznam modulů a záložní šablona; vzhled přijde v dalších verzích
 

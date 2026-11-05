@@ -1,43 +1,79 @@
-# Po pushnutí tagu vX.Y.Z sestaví mnddrilling.zip (šablona) + mnddrilling-core.zip (plugin) a vytvoří GitHub Release.
-# WordPress (updater v pluginu i šabloně) si pak aktualizaci najde sám.
-name: Release šablony
+# Vydání pluginu a šablony z tagu vX.Y.Z (podle templates/release.yml skillu wp-custom-theme).
+# Ověří, že tag = Version pluginu i šablony, zkontroluje syntaxi PHP ve verzi produkce, sestaví
+# mnddrilling-core.zip + mnddrilling.zip a vytvoří Release s textem z CHANGELOG.md.
+# Updatery na webu (plugin přes Update URI, šablona) si aktualizaci najdou samy.
+name: Release
 
 on:
   push:
-    tags: ['v*']
+    tags:
+      - "v*"
 
 permissions:
   contents: write
 
+env:
+  PHP_VERSION: "8.5"   # = verze PHP na produkci; při změně na hostingu změň i tady
+  REQUIRE_THEME: "1"   # THEME — "1" = šablona musí být v repu
+
 jobs:
   release:
-    runs-on: ubuntu-24.04  # pevně: ubuntu-latest se od 19. 10. 2026 přepne na Ubuntu 26 (jiné PHP); přechod udělat vědomě
+    name: Build & publish release ZIPs
+    runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
 
-      - name: Kontrola verze (tag = Version šablony i pluginu)
+      - name: Kontrola verze (tag = Version pluginu i šablony)
         run: |
+          case "$PHP_VERSION" in *x*) echo "::error::PHP_VERSION nahoře ve workflow nastav na verzi PHP produkce"; exit 1;; esac
           TAG="${GITHUB_REF_NAME#v}"
-          THEME=$(grep -m1 -E '^Version:' theme/mnddrilling/style.css | awk '{print $2}')
           CORE=$(grep -m1 -E '^ \* Version:' plugins/mnddrilling-core/mnddrilling-core.php | awk '{print $3}')
-          echo "tag=$TAG theme=$THEME core=$CORE"
-          if [ "$TAG" != "$THEME" ] || [ "$TAG" != "$CORE" ]; then
-            echo "::error::Tag v$TAG musí odpovídat Version ve style.css ($THEME) i v mnddrilling-core.php ($CORE)"; exit 1
-          fi
+          [ "$TAG" = "$CORE" ] || { echo "::error::Tag v$TAG ≠ Version pluginu $CORE"; exit 1; }
+          if [ -f theme/mnddrilling/style.css ]; then   # THEME
+            THEME=$(grep -m1 -E '^Version:' theme/mnddrilling/style.css | awk '{print $2}')   # THEME
+            [ "$TAG" = "$THEME" ] || { echo "::error::Tag v$TAG ≠ Version šablony $THEME"; exit 1; }   # THEME
+          elif [ "$REQUIRE_THEME" = "1" ]; then echo "::error::Chybí theme/mnddrilling/style.css"; exit 1;   # THEME
+          else echo "::notice::Šablona v repu zatím není, vydává se jen plugin."; fi   # THEME
 
-      - name: Kontrola syntaxe PHP
-        run: find theme/mnddrilling plugins/mnddrilling-core -name '*.php' -print0 | xargs -0 -n1 php -l
+      # PHP připnuté podle produkce: ubuntu-latest se posouvá a s ním i předinstalované PHP.
+      - name: PHP ${{ env.PHP_VERSION }} (jako na produkci)
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ env.PHP_VERSION }}
+          coverage: none
+          tools: none
+
+      - name: Kontrola syntaxe PHP ${{ env.PHP_VERSION }}
+        run: |
+          php -v | head -n1
+          for d in plugins theme; do
+            if [ -d "$d" ]; then find "$d" -name '*.php' -print0; fi
+          done | xargs -0 -n1 php -l
 
       - name: Sestavení ZIPů
         run: |
-          (cd theme && zip -rq ../mnddrilling.zip mnddrilling -x 'mnddrilling/.gitkeep' -x '*/.DS_Store' -x 'mnddrilling/README.md')
           (cd plugins && zip -rq ../mnddrilling-core.zip mnddrilling-core -x '*/.DS_Store')
-          unzip -l mnddrilling.zip | tail -1; unzip -l mnddrilling-core.zip | tail -1
+          if [ -f theme/mnddrilling/style.css ]; then   # THEME
+            (cd theme && zip -rq ../mnddrilling.zip mnddrilling -x '*/.DS_Store' -x 'mnddrilling/README.md' -x 'mnddrilling/.gitkeep')   # THEME
+          fi   # THEME
 
-      - name: GitHub Release
+      # Text vydání = sekce „## vX.Y.Z — RRRR-MM-DD“ z CHANGELOG.md.
+      # Bez sekce zůstanou jen automaticky generované poznámky.
+      - name: Release notes from CHANGELOG.md
+        run: |
+          awk -v tag="$GITHUB_REF_NAME" '
+            $1 == "##" { if (found) exit; if ($2 == tag) { found = 1; next } }
+            found
+          ' CHANGELOG.md > release-notes.md
+          if [ -s release-notes.md ]; then
+            echo "Release notes for $GITHUB_REF_NAME:"; cat release-notes.md
+          else
+            echo "::warning::CHANGELOG.md nemá sekci ## $GITHUB_REF_NAME"
+          fi
+
+      - name: GitHub Release s ZIPy
         uses: softprops/action-gh-release@v3
         with:
-          files: |
-            mnddrilling.zip
-            mnddrilling-core.zip
+          files: "*.zip"
+          body_path: release-notes.md
           generate_release_notes: true
